@@ -6,25 +6,48 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    class ECG
+    public class ECG
     {
-        public double amplitude = 0.0;
-        public double frequency = 0;
+        private double amplitude;
+        private double frequency;
+        private int harmonics;
 
-        public ECG(double amplitude, double frequency)
+        public ECG(double amplitude, double frequency, int harmonics)
         {
             this.amplitude = amplitude;
             this.frequency = frequency;
+            this.harmonics = harmonics;
+        }
+
+        public double Amplitude
+        {
+            get { return amplitude; }
+            set { amplitude = value; }
+        }
+
+        public double Frequency
+        {
+            get { return frequency; }
+            set { frequency = value; }
+        }
+
+        public int Harmonics
+        {
+            get { return harmonics; }
+            set { harmonics = value; }
         }
 
         public double NextSample(double timeIndex)
         {
-            const double HzToBeatsPerMin = 60.0;
-            double sample;
+            const double HzToBeatsPerMin = 100.0;
+            double sample = 0.0;
 
-            sample = Math.Cos(2 * Math.PI * (frequency / HzToBeatsPerMin) * timeIndex);
-            sample *= amplitude;
-            return (sample);
+            for (int i = 1; i <= harmonics; i++)
+            {
+                sample += Math.Cos(2 * Math.PI * (frequency / HzToBeatsPerMin) * timeIndex * i);
+            }
+
+            return sample * amplitude;
         }
     }
 }
