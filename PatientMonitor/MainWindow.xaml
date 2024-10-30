@@ -10,7 +10,7 @@
     Title="Patient Monitor" Height="650" Width="800">
 
     <Grid Margin="10" VerticalAlignment="Center" Height="610">
-        
+
         <toolkit:Chart x:Name="ChartECG" Title="Real-time ECG" Height="350" VerticalAlignment="Top" Margin="0,0,0,10">
             <toolkit:LineSeries x:Name="LineSeriesECG" Title="ECG Channel1"
                                 IndependentValueBinding="{Binding X}"
