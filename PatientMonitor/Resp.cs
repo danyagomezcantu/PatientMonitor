@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    internal class EMG
+    internal class Resp
     {
-        private const double HzToBeatsPerMin = 60.0;
         private double amplitude;
         private double frequency;
 
@@ -24,7 +23,7 @@ namespace PatientMonitor
             set { frequency = value; }
         }
 
-        public EMG(double amplitude = 0.0, double frequency = 0.0)
+        public Resp(double amplitude = 0.0, double frequency = 0.0)
         {
             this.amplitude = amplitude;
             this.frequency = frequency;
@@ -35,9 +34,9 @@ namespace PatientMonitor
             if (frequency == 0 || amplitude == 0)
                 return 0.0;
 
-            double signalLength = HzToBeatsPerMin / frequency;
-            double stepIndex = timeIndex % signalLength;
-            return stepIndex > signalLength / 2.0 ? amplitude : -amplitude;
+            double period = 60.0 / frequency;
+            double phase = (timeIndex % period) / period;
+            return amplitude * (2 * phase - 1); // Ramps between -Amplitude to +Amplitude
         }
     }
 

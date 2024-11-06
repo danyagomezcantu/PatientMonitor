@@ -3,44 +3,82 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PatientMonitor"
-        xmlns:toolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit" x:Class="PatientMonitor.MainWindow"
+        xmlns:toolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit"
+        x:Class="PatientMonitor.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="630" Width="800">
+        Title="Patient Monitor" Height="700" Width="800">
 
-    <Grid Margin="0,0,0.333,14.667">
-        <toolkit:Chart Title="Real-time ECG" Width="800" Height="400" VerticalAlignment="Top">
-            <toolkit:LineSeries x:Name="lineSeriesECG"
-                                        Title="ECG Channel1"
-                                        IndependentValueBinding="{Binding Key}"
-                                        DependentValueBinding="{Binding Value}">
+    <Grid Margin="10">
+        <!-- Chart Control for Real-Time Data Visualization -->
+        <toolkit:Chart x:Name="chartECG" Title="Real-Time Parameter" Width="700" Height="300" VerticalAlignment="Top">
+            <toolkit:LineSeries x:Name="lineSeries" Title="Parameter Channel1"
+                                IndependentValueBinding="{Binding Key}"
+                                DependentValueBinding="{Binding Value}">
                 <toolkit:LineSeries.IndependentAxis>
-                    <toolkit:LinearAxis Orientation="X" Title="Time" />
+                    <toolkit:LinearAxis Orientation="X" Title="Time (s)" />
                 </toolkit:LineSeries.IndependentAxis>
                 <toolkit:LineSeries.DependentRangeAxis>
-                    <toolkit:LinearAxis Orientation="Y" Title="Value" />
+                    <toolkit:LinearAxis Orientation="Y" Title="Amplitude (mV)" />
                 </toolkit:LineSeries.DependentRangeAxis>
             </toolkit:LineSeries>
         </toolkit:Chart>
-        <GroupBox x:Name="ParameterGroupBox" Header="Parameters" Width="380" HorizontalAlignment="Right" Margin="0,412,10.333,66.667" FontSize="16">
-            <StackPanel Orientation="Vertical">
-                <Slider x:Name="sliderECG" Minimum="0" Maximum="10" Value="5" Margin="0,0,0,10" Height="20" Width="350" VerticalAlignment="Top" IsEnabled="False"  IsEnabledChanged="sliderECG_IsEnabledChanged"/>
-                <ComboBox x:Name="comboBoxParameters" HorizontalAlignment="Left" Margin="125,0,0,0" VerticalAlignment="Top" Width="120" RenderTransformOrigin="-0.107,0.762" IsEnabled="False" IsEnabledChanged="comboBoxParameters_IsEnabledChanged">
-                    <ComboBoxItem Content="ECG"/>
-                    <ComboBoxItem Content="EEG"/>
-                    <ComboBoxItem Content="EMG"/>
-                    <ComboBoxItem Content="Respiration"/>
+
+        <!-- Patient Information Group -->
+        <GroupBox Header="Input Patient" Width="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,320,0,0" FontSize="14">
+            <StackPanel>
+                <Label Content="Patient Name:" />
+                <TextBox x:Name="textBoxName" Width="250" />
+
+                <Label Content="Patient Age:" />
+                <TextBox x:Name="textBoxAge" Width="250" PreviewTextInput="textBoxAge_PreviewTextInput" />
+
+                <Label Content="Date of Study:" />
+                <DatePicker x:Name="datePickerMonitor" Width="250" />
+
+                <Button x:Name="createPatientButton" Content="Create Patient" Width="250" Click="CreatePatientButton_Click" />
+                <Button x:Name="updatePatientButton" Content="Update Patient" Width="250" IsEnabled="False" />
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Parameters Group -->
+        <GroupBox Header="Parameters" Width="300" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,320,40,0" FontSize="14">
+            <StackPanel>
+                <Label Content="Amplitude (mV)" Margin="5,5,5,0" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="0 mV" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <TextBlock Text="2.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="7.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="10 mV" VerticalAlignment="Center" Margin="15,0,5,0"/>
+                </StackPanel>
+                
+                <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="250" ValueChanged="SliderAmplitude_ValueChanged" />
+
+                <Label Content="Frequency (cycles/min):" />
+                <TextBox x:Name="textBoxFrequency" Width="250" TextChanged="textBoxFrequency_TextChanged" />
+
+                <Label Content="Harmonics:" />
+                <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False">
+                    <ComboBoxItem Content="1" IsSelected="True"/> 
+                    <ComboBoxItem Content="2" />
+                    <ComboBoxItem Content="3" />
+                </ComboBox>
+
+                <Label Content="Parameter:" />
+                <ComboBox x:Name="comboBoxParameters" Width="250" IsEnabled="False">
+                    <ComboBoxItem Content="ECG" IsSelected="True"/>
+                    <ComboBoxItem Content="EEG" />
+                    <ComboBoxItem Content="EMG" />
+                    <ComboBoxItem Content="Respiration" />
                 </ComboBox>
             </StackPanel>
         </GroupBox>
-        <GroupBox x:Name="PatientGroupBox" Header="Input Patient" Width="380" HorizontalAlignment="Left" Margin="23,412,0,66.667" FontSize="16">
 
-            <Button x:Name="buttonCreatePatient" Content="Create Patient" Width="120" Margin="0,30,0,0" Height="30" Click="buttonCreatePatient_Click"/>
-
-        </GroupBox>
-        <Button x:Name="buttonParameter" Content="Start Parameters" HorizontalAlignment="Left" Margin="469,539,0,0" VerticalAlignment="Top" FontSize="16" IsEnabled="False" Click="buttonParameter_Click"/>
-        <Button x:Name="buttonStop" Content="Stop" HorizontalAlignment="Left" Margin="609,539,0,0" VerticalAlignment="Top" FontSize="16"/>
-
+        <!-- Simulation Controls -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20">
+            <Button x:Name="startSimulationButton" Content="Start Simulation" Width="150" Height="40" Click="StartSimulationButton_Click" IsEnabled="False"/>
+            <Button x:Name="stopSimulationButton" Content="Stop" Width="150" Height="40" Click="StopSimulationButton_Click" Margin="10,0,0,0" IsEnabled="False" />
+        </StackPanel>
     </Grid>
 </Window>
-
