@@ -6,60 +6,33 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    public class Patient
+    class Patient
     {
-        private string patientName;
-        private int age;
-        private DateTime dateOfStudy;
-        private ECG ecg;
+        ECG ecg;
+        EMG emg;
 
-        public Patient(string name, int age, DateTime dateOfStudy, double amplitude, double frequency, int harmonics)
+        public double ECGAmplitude { set => ecg.Amplitude = value; }
+        public double ECGFrequency { set => ecg.Frequency = value; }
+        public double EMGAmplitude { set => emg.Amplitude = value; }
+        public Patient(double amplitude, double frequency)
         {
-            this.patientName = name;
-            this.age = age;
-            this.dateOfStudy = dateOfStudy;
-            this.ecg = new ECG(amplitude, frequency, harmonics);
+            ecg = new ECG(amplitude, frequency);
+            emg = new EMG(amplitude, frequency);
         }
-
-        public string PatientName
+        public double NextSample(double timeIndex, MonitorConstants.Parameter parameter)
         {
-            get { return patientName; }
-            set { patientName = value; }
-        }
-
-        public int Age
-        {
-            get { return age; }
-            set { age = value; }
-        }
-
-        public DateTime DateOfStudy
-        {
-            get { return dateOfStudy; }
-            set { dateOfStudy = value; }
-        }
-
-        public double ECGAmplitude
-        {
-            get { return ecg.Amplitude; }
-            set { ecg.Amplitude = value; }
-        }
-
-        public double ECGFrequency
-        {
-            get { return ecg.Frequency; }
-            set { ecg.Frequency = value; }
-        }
-
-        public int ECGHarmonics
-        {
-            get { return ecg.Harmonics; }
-            set { ecg.Harmonics = value; }
-        }
-
-        public double NextSample(double timeIndex)
-        {
-            return ecg.NextSample(timeIndex);
+            double nextSample = 0.0;
+            switch (parameter)
+            {
+                case MonitorConstants.Parameter.ECG:
+                    nextSample = ecg.NextSample(timeIndex);
+                    break;
+                case MonitorConstants.Parameter.EMG:
+                    nextSample = emg.NextSample(timeIndex);
+                    break;
+                default: break;
+            }
+            return nextSample;
         }
     }
 }
