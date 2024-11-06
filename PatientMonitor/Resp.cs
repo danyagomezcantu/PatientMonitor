@@ -36,7 +36,7 @@ namespace PatientMonitor
 
             double period = 60.0 / frequency;
             double phase = (timeIndex % period) / period;
-            return amplitude * (2 * phase - 1); // Ramps between -Amplitude to +Amplitude
+            return amplitude * (2 * phase - 1);
         }
     }
 

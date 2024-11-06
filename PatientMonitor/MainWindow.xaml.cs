@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
 
 
 namespace PatientMonitor
@@ -24,13 +25,6 @@ namespace PatientMonitor
     /// <summary>
     /// Interaktionslogik für MainWindow.xaml
     /// </summary>
-    using System;
-    using System.Collections.Generic;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Threading;
-    using System.Windows.Controls.DataVisualization.Charting;
-    using System.Windows.Controls.Primitives;
 
     public partial class MainWindow : Window
     {
@@ -40,7 +34,7 @@ namespace PatientMonitor
         private double timeIndex;
         private List<KeyValuePair<int, double>> dataPoints;
         private int index;
-        private double lastValidFrequency = 0.0; // Track last valid frequency value
+        private double lastValidFrequency = 0.0;
 
         public MainWindow()
         {
@@ -85,20 +79,26 @@ namespace PatientMonitor
             UpdateControlsForParameter();
         }
 
+        private void ComboBoxHarmonics_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (patient != null)
+            {
+                patient.ECGHarmonics = comboBoxHarmonics.SelectedIndex + 1;
+            }
+        }
+
         private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Ensure timer is initialized before proceeding
             if (timer == null)
                 return;
 
             selectedParameter = (MonitorConstants.Parameter)comboBoxParameters.SelectedIndex;
             UpdateControlsForParameter();
 
-            // Ensure the wave display updates to the new parameter without stopping the simulation
             if (timer.IsEnabled)
             {
-                timeIndex = 0; // Reset timeIndex to start the new parameter wave from zero
-                dataPoints.Clear(); // Clear the chart data points
+                // timeIndex = 0;
+                // dataPoints.Clear();
             }
         }
 

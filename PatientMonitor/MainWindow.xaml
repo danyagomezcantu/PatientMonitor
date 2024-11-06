@@ -59,7 +59,7 @@
                 <TextBox x:Name="textBoxFrequency" Width="250" TextChanged="textBoxFrequency_TextChanged" />
 
                 <Label Content="Harmonics:" />
-                <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False">
+                <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False" SelectionChanged="ComboBoxHarmonics_SelectionChanged">
                     <ComboBoxItem Content="1" IsSelected="True"/> 
                     <ComboBoxItem Content="2" />
                     <ComboBoxItem Content="3" />
@@ -75,7 +75,6 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- Simulation Controls -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20">
             <Button x:Name="startSimulationButton" Content="Start Simulation" Width="150" Height="40" Click="StartSimulationButton_Click" IsEnabled="False"/>
             <Button x:Name="stopSimulationButton" Content="Stop" Width="150" Height="40" Click="StopSimulationButton_Click" Margin="10,0,0,0" IsEnabled="False" />
