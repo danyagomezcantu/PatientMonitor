@@ -39,15 +39,18 @@ namespace PatientMonitor
 
         public double NextSample(double timeIndex)
         {
+            const double HzToBeatsPerMin = 100.0;
+            double sample = 0.0;
+
             if (frequency == 0 || amplitude == 0)
                 return 0.0;
 
-            double sample = 0.0;
             for (int i = 1; i <= harmonics; i++)
             {
-                sample += amplitude * Math.Cos(2 * Math.PI * frequency * timeIndex * i / 60.0);
+                sample += Math.Cos(2 * Math.PI * (frequency / HzToBeatsPerMin) * timeIndex * i);
             }
-            return sample;
+
+            return sample * amplitude;
         }
     }
 }
