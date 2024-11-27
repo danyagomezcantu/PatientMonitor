@@ -31,13 +31,15 @@
         </toolkit:Chart>
 
         <!-- StackPanel for MR Images -->
-        <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
+        <StackPanel Orientation="Vertical"  Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
             <Label Content="MR Images" HorizontalAlignment="Center"/>
-            <Button x:Name="prevImageButton" Content="Prev" Width="75" Margin="5" IsEnabled="False"/>
-            <!-- Falta funcionalidad  Click="PrevImageButton_Click"-->
-            <Button x:Name="loadImagesButton" Content="Load Image" Click="LoadImagesButton_Click" Width="100" Margin="5" IsEnabled="False"/>
-            <Button x:Name="nextImageButton" Content="Next" Width="75" Margin="5" IsEnabled="False"/>
-            <!-- Falta funcionalidad Click="NextImageButton_Click"-->
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="prevImageButton" Content="Prev" Width="75" Margin="5" IsEnabled="False"/>
+                <!-- Falta funcionalidad  Click="PrevImageButton_Click"-->
+                <Button x:Name="loadImagesButton" Content="Load Image" Click="LoadImagesButton_Click" Width="100" Margin="5" IsEnabled="False"/>
+                <Button x:Name="nextImageButton" Content="Next" Width="75" Margin="5" IsEnabled="False"/>
+                <!-- Falta funcionalidad Click="NextImageButton_Click"-->
+            </StackPanel>
             <Image x:Name="imageViewer" Width="200" Height="200" Margin="10"/>
         </StackPanel>
 
@@ -93,8 +95,8 @@
 
         <!-- Labels for Alarm Status -->
         <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="1" Margin="10">
-            <Label x:Name="labelLowAlarm" Content="No low Alarm"/>
-            <Label x:Name="labelHighAlarm" Content="No high Alarm"/>
+            <Label x:Name="labelLowAlarm" Content=""/>
+            <Label x:Name="labelHighAlarm" Content=""/>
 
             <Label Content="Parameter:" />
             <ComboBox x:Name="comboBoxParameters" Width="250" IsEnabled="False" SelectionChanged="ComboBoxParameters_SelectionChanged">

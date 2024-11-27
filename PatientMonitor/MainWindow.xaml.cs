@@ -317,7 +317,7 @@ namespace PatientMonitor
 
             if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
             {
-                labelLowAlarm.Content = "low Alarm: " + textBoxLowAlarm.Text;
+                labelLowAlarm.Content = "Low Alarm: " + frequency;
             }
         }
 
@@ -345,7 +345,7 @@ namespace PatientMonitor
             }
 
             if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency > highAlarm) { 
-                labelHighAlarm.Content = "High Alarm: " + textBoxHighAlarm.Text;
+                labelHighAlarm.Content = "High Alarm: " + frequency;
             }
         }
 
