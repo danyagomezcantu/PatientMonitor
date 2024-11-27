@@ -30,7 +30,7 @@
                                 DependentValueBinding="{Binding Value}" />
         </toolkit:Chart>
 
-        <!-- StackPanel for MR Images (right side) -->
+        <!-- StackPanel for MR Images -->
         <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
             <Label Content="MR Images" HorizontalAlignment="Center"/>
             <Button x:Name="prevImageButton" Content="Prev" Width="75" Margin="5" IsEnabled="False"/>
@@ -41,7 +41,7 @@
             <Image x:Name="imageViewer" Width="200" Height="200" Margin="10"/>
         </StackPanel>
 
-        <!-- StackPanel for Patient Details (left side) -->
+        <!-- StackPanel for Patient -->
         <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1" Margin="10">
             <Label Content="Input Patient" FontWeight="Bold"/>
             <Label Content="Patient Name:" />
@@ -50,7 +50,7 @@
             <Label Content="Patient Age:" />
             <TextBox x:Name="textBoxAge" Width="200" PreviewTextInput="textBoxAge_PreviewTextInput"/>
 
-            <Label Content="Monitoring Date:" />
+            <Label Content="Date:" />
             <DatePicker x:Name="datePickerMonitor" Width="200" />
 
             <Button x:Name="createPatientButton" Content="Create Patient" Click="CreatePatientButton_Click" Width="150" Margin="5"/>

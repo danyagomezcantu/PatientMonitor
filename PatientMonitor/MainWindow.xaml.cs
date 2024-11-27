@@ -34,7 +34,7 @@ namespace PatientMonitor
 
             comboBoxParameters.SelectionChanged += ComboBoxParameters_SelectionChanged;
 
-            spektrum = new Spektrum(512); // Initialize FFT with 512 samples
+            spektrum = new Spektrum(128); // FFT con 128 samples en vez de 512 samples
 
             // Disable UI controls until a patient is created
             DisableUIElements();
@@ -315,7 +315,10 @@ namespace PatientMonitor
                 }
             }
 
-            labelLowAlarm.Content = "Low Alarm: " + textBoxLowAlarm.Text;
+            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
+            {
+                labelLowAlarm.Content = "low Alarm: " + textBoxLowAlarm.Text;
+            }
         }
 
         private void textBoxHighAlarm_TextChanged(object sender, TextChangedEventArgs e)
@@ -341,7 +344,9 @@ namespace PatientMonitor
                 }
             }
 
-            labelHighAlarm.Content = "High Alarm: " + textBoxHighAlarm.Text;
+            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency > highAlarm) { 
+                labelHighAlarm.Content = "High Alarm: " + textBoxHighAlarm.Text;
+            }
         }
 
         private void LoadImagesButton_Click(object sender, RoutedEventArgs e)

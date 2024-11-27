@@ -13,7 +13,7 @@ namespace PatientMonitor
 
         public override double NextSample(double timeIndex)
         {
-            return (Frequency == 0 || Amplitude == 0) ? 0.0 : Amplitude * Math.Exp(-Frequency * timeIndex / 60.0);
+            return (Frequency == 0 || Amplitude == 0) ? 0.0 : Amplitude * 100 * Math.Exp(-Frequency * timeIndex / 60.0);
         }
 
         public void DisplayLowAlarm()
