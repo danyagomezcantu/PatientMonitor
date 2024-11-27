@@ -6,52 +6,32 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    internal class ECG
+    public class ECG : PhysioParameter, IPhysioFunctions
     {
-        private double amplitude;
-        private double frequency;
-        private int harmonics;
+        public ECG(double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm)
+            : base(amplitude, frequency, harmonics, lowAlarm, highAlarm) { }
 
-        public double Amplitude
+        public override double NextSample(double timeIndex)
         {
-            get { return amplitude; }
-            set { amplitude = value; }
-        }
-
-        public double Frequency
-        {
-            get { return frequency; }
-            set { frequency = value; }
-        }
-
-        public int Harmonics
-        {
-            get { return harmonics; }
-            set { harmonics = value; }
-        }
-
-        public ECG(double amplitude = 0.0, double frequency = 0.0, int harmonics = 1)
-        {
-            this.amplitude = amplitude;
-            this.frequency = frequency;
-            this.harmonics = harmonics;
-        }
-
-        public double NextSample(double timeIndex)
-        {
-            const double HzToBeatsPerMin = 100.0;
             double sample = 0.0;
+            if (Frequency == 0 || Amplitude == 0) return 0.0;
 
-            if (frequency == 0 || amplitude == 0)
-                return 0.0;
-
-            for (int i = 1; i <= harmonics; i++)
+            for (int i = 1; i <= Harmonics; i++)
             {
-                sample += Math.Cos(2 * Math.PI * (frequency / HzToBeatsPerMin) * timeIndex * i);
+                sample += Math.Cos(2 * Math.PI * (Frequency / 60.0) * timeIndex * i);
             }
 
-            return sample * amplitude;
+            return sample * Amplitude;
+        }
+
+        public void DisplayLowAlarm()
+        {
+            base.DisplayLowAlarm();
+        }
+
+        public void DisplayHighAlarm()
+        {
+            base.DisplayHighAlarm();
         }
     }
 }
-

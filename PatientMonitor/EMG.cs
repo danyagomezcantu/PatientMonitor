@@ -6,39 +6,29 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    internal class EMG
+    public class EMG : PhysioParameter, IPhysioFunctions
     {
-        private const double HzToBeatsPerMin = 60.0;
-        private double amplitude;
-        private double frequency;
+        public EMG(double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm)
+            : base(amplitude, frequency, harmonics, lowAlarm, highAlarm) { }
 
-        public double Amplitude
+        public override double NextSample(double timeIndex)
         {
-            get { return amplitude; }
-            set { amplitude = value; }
-        }
-
-        public double Frequency
-        {
-            get { return frequency; }
-            set { frequency = value; }
-        }
-
-        public EMG(double amplitude = 0.0, double frequency = 0.0)
-        {
-            this.amplitude = amplitude;
-            this.frequency = frequency;
-        }
-
-        public double NextSample(double timeIndex)
-        {
-            if (frequency == 0 || amplitude == 0)
+            if (Frequency == 0 || Amplitude == 0)
                 return 0.0;
 
-            double signalLength = HzToBeatsPerMin / frequency;
+            double signalLength = 60.0 / Frequency;
             double stepIndex = timeIndex % signalLength;
-            return stepIndex > signalLength / 2.0 ? amplitude : -amplitude;
+            return stepIndex > signalLength / 2.0 ? Amplitude : -Amplitude;
+        }
+
+        public void DisplayLowAlarm()
+        {
+            base.DisplayLowAlarm();
+        }
+
+        public void DisplayHighAlarm()
+        {
+            base.DisplayHighAlarm();
         }
     }
-
 }

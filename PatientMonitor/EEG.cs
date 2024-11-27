@@ -6,33 +6,24 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    internal class EEG
+    public class EEG : PhysioParameter, IPhysioFunctions
     {
-        private double amplitude;
-        private double frequency;
+        public EEG(double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm)
+            : base(amplitude, frequency, harmonics, lowAlarm, highAlarm) { }
 
-        public double Amplitude
+        public override double NextSample(double timeIndex)
         {
-            get { return amplitude; }
-            set { amplitude = value; }
+            return (Frequency == 0 || Amplitude == 0) ? 0.0 : Amplitude * Math.Exp(-Frequency * timeIndex / 60.0);
         }
 
-        public double Frequency
+        public void DisplayLowAlarm()
         {
-            get { return frequency; }
-            set { frequency = value; }
+            base.DisplayLowAlarm();
         }
 
-        public EEG(double amplitude = 0.0, double frequency = 0.0)
+        public void DisplayHighAlarm()
         {
-            this.amplitude = amplitude;
-            this.frequency = frequency;
-        }
-
-        public double NextSample(double timeIndex)
-        {
-            return (frequency == 0 || amplitude == 0) ? 0.0 : amplitude * Math.Exp(-frequency * timeIndex / 60.0);
+            base.DisplayHighAlarm();
         }
     }
-
 }

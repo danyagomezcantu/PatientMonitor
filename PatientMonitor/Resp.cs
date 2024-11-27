@@ -6,38 +6,29 @@ using System.Threading.Tasks;
 
 namespace PatientMonitor
 {
-    internal class Resp
+    public class Resp : PhysioParameter, IPhysioFunctions
     {
-        private double amplitude;
-        private double frequency;
+        public Resp(double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm)
+            : base(amplitude, frequency, harmonics, lowAlarm, highAlarm) { }
 
-        public double Amplitude
+        public override double NextSample(double timeIndex)
         {
-            get { return amplitude; }
-            set { amplitude = value; }
-        }
-
-        public double Frequency
-        {
-            get { return frequency; }
-            set { frequency = value; }
-        }
-
-        public Resp(double amplitude = 0.0, double frequency = 0.0)
-        {
-            this.amplitude = amplitude;
-            this.frequency = frequency;
-        }
-
-        public double NextSample(double timeIndex)
-        {
-            if (frequency == 0 || amplitude == 0)
+            if (Frequency == 0 || Amplitude == 0)
                 return 0.0;
 
-            double period = 60.0 / frequency;
+            double period = 60.0 / Frequency;
             double phase = (timeIndex % period) / period;
-            return amplitude * (2 * phase - 1);
+            return Amplitude * (2 * phase - 1);
+        }
+
+        public void DisplayLowAlarm()
+        {
+            base.DisplayLowAlarm();
+        }
+
+        public void DisplayHighAlarm()
+        {
+            base.DisplayHighAlarm();
         }
     }
-
 }

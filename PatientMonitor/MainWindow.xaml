@@ -6,78 +6,111 @@
         xmlns:toolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit"
         x:Class="PatientMonitor.MainWindow"
         mc:Ignorable="d"
-        Title="Patient Monitor" Height="700" Width="800">
+        Title="Patient Monitor" Height="800" Width="1100">
 
     <Grid Margin="10">
-        <!-- Chart Control for Real-Time Data Visualization -->
-        <toolkit:Chart x:Name="chartECG" Title="Real-Time Parameter" Width="700" Height="300" VerticalAlignment="Top">
-            <toolkit:LineSeries x:Name="lineSeries" Title="Parameter Channel1"
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Real-time Chart -->
+        <toolkit:Chart x:Name="ChartECG" Title="Real-time Parameter"
+                       VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                       Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+                       Width="Auto" Height="300" Margin="10">
+            <toolkit:LineSeries x:Name="lineSeries" Title="Series 1"
                                 IndependentValueBinding="{Binding Key}"
-                                DependentValueBinding="{Binding Value}">
-                <toolkit:LineSeries.IndependentAxis>
-                    <toolkit:LinearAxis Orientation="X" Title="Time (s)" />
-                </toolkit:LineSeries.IndependentAxis>
-                <toolkit:LineSeries.DependentRangeAxis>
-                    <toolkit:LinearAxis Orientation="Y" Title="Amplitude (mV)" />
-                </toolkit:LineSeries.DependentRangeAxis>
-            </toolkit:LineSeries>
+                                DependentValueBinding="{Binding Value}" />
         </toolkit:Chart>
 
-        <!-- Patient Information Group -->
-        <GroupBox Header="Input Patient" Width="300" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,320,0,0" FontSize="14">
-            <StackPanel>
-                <Label Content="Patient Name:" />
-                <TextBox x:Name="textBoxName" Width="250" />
-
-                <Label Content="Patient Age:" />
-                <TextBox x:Name="textBoxAge" Width="250" PreviewTextInput="textBoxAge_PreviewTextInput" />
-
-                <Label Content="Date of Study:" />
-                <DatePicker x:Name="datePickerMonitor" Width="250" />
-
-                <Button x:Name="createPatientButton" Content="Create Patient" Width="250" Click="CreatePatientButton_Click" />
-                <Button x:Name="updatePatientButton" Content="Update Patient" Width="250" IsEnabled="False" />
-            </StackPanel>
-        </GroupBox>
-
-        <!-- Parameters Group -->
-        <GroupBox Header="Parameters" Width="300" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,320,40,0" FontSize="14">
-            <StackPanel>
-                <Label Content="Amplitude (mV)" Margin="5,5,5,0" />
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <TextBlock Text="0 mV" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                    <TextBlock Text="2.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                    <TextBlock Text="5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                    <TextBlock Text="7.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                    <TextBlock Text="10 mV" VerticalAlignment="Center" Margin="15,0,5,0"/>
-                </StackPanel>
-                
-                <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="250" ValueChanged="SliderAmplitude_ValueChanged" />
-
-                <Label Content="Frequency (cycles/min):" />
-                <TextBox x:Name="textBoxFrequency" Width="250" TextChanged="textBoxFrequency_TextChanged" />
-
-                <Label Content="Harmonics:" />
-                <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False" SelectionChanged="ComboBoxHarmonics_SelectionChanged">
-                    <ComboBoxItem Content="1" IsSelected="True"/> 
-                    <ComboBoxItem Content="2" />
-                    <ComboBoxItem Content="3" />
-                </ComboBox>
-
-                <Label Content="Parameter:" />
-                <ComboBox x:Name="comboBoxParameters" Width="250" IsEnabled="False">
-                    <ComboBoxItem Content="ECG" IsSelected="True"/>
-                    <ComboBoxItem Content="EEG" />
-                    <ComboBoxItem Content="EMG" />
-                    <ComboBoxItem Content="Respiration" />
-                </ComboBox>
-            </StackPanel>
-        </GroupBox>
-
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,20">
-            <Button x:Name="startSimulationButton" Content="Start Simulation" Width="150" Height="40" Click="StartSimulationButton_Click" IsEnabled="False"/>
-            <Button x:Name="stopSimulationButton" Content="Stop" Width="150" Height="40" Click="StopSimulationButton_Click" Margin="10,0,0,0" IsEnabled="False" />
+        <!-- StackPanel for MR Images (right side) -->
+        <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
+            <Label Content="MR Images" HorizontalAlignment="Center"/>
+            <Button x:Name="prevImageButton" Content="Prev" Width="75" Margin="5" IsEnabled="False"/>
+            <!-- Falta funcionalidad  Click="PrevImageButton_Click"-->
+            <Button x:Name="loadImagesButton" Content="Load Image" Click="LoadImagesButton_Click" Width="100" Margin="5" IsEnabled="False"/>
+            <Button x:Name="nextImageButton" Content="Next" Width="75" Margin="5" IsEnabled="False"/>
+            <!-- Falta funcionalidad Click="NextImageButton_Click"-->
+            <Image x:Name="imageViewer" Width="200" Height="200" Margin="10"/>
         </StackPanel>
+
+        <!-- StackPanel for Patient Details (left side) -->
+        <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1" Margin="10">
+            <Label Content="Input Patient" FontWeight="Bold"/>
+            <Label Content="Patient Name:" />
+            <TextBox x:Name="textBoxName" Width="200" />
+
+            <Label Content="Patient Age:" />
+            <TextBox x:Name="textBoxAge" Width="200" PreviewTextInput="textBoxAge_PreviewTextInput"/>
+
+            <Label Content="Monitoring Date:" />
+            <DatePicker x:Name="datePickerMonitor" Width="200" />
+
+            <Button x:Name="createPatientButton" Content="Create Patient" Click="CreatePatientButton_Click" Width="150" Margin="5"/>
+            <Button x:Name="updatePatientButton" Content="Update Patient" Width="150" Margin="5" IsEnabled="False"/>
+            <!-- Falta funcionalidad Click="UpdatePatientButton_Click"-->
+        </StackPanel>
+
+        <!-- StackPanel for Parameters (center) -->
+        <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="10">
+            <Label Content="Parameters" FontWeight="Bold"/>
+            <Label Content="Amplitude (mV)" Margin="5,5,5,0" />
+            <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="250" ValueChanged="SliderAmplitude_ValueChanged" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="0 mV" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                <TextBlock Text="2.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <TextBlock Text="5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <TextBlock Text="7.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                <TextBlock Text="10 mV" VerticalAlignment="Center" Margin="15,0,5,0"/>
+            </StackPanel>
+
+            <Label Content="Frequency:" />
+            <TextBox x:Name="textBoxFrequency" Width="250" TextChanged="textBoxFrequency_TextChanged" />
+
+            <Label Content="Low Alarm:" />
+            <TextBox x:Name="textBoxLowAlarm" Width="250" TextChanged="textBoxLowAlarm_TextChanged" />
+
+            <Label Content="High Alarm:" />
+            <TextBox x:Name="textBoxHighAlarm" Width="250" TextChanged="textBoxHighAlarm_TextChanged" />
+
+        </StackPanel>
+
+        <!-- Controls at the Bottom (start, stop, radio buttons) -->
+        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="299,0,0,99">
+            <RadioButton x:Name="timeRadioButton" Content="Time" GroupName="View" Checked="RadioButton_Checked" IsChecked="True"/>
+            <RadioButton x:Name="frequencyRadioButton" Content="Frequency" GroupName="View" Checked="RadioButton_Checked" Margin="10,0,0,0"/>
+            <Button x:Name="startSimulationButton" Content="Start Simulation" Click="StartSimulationButton_Click" Margin="10" Width="150"/>
+            <Button x:Name="stopSimulationButton" Content="Stop Simulation" Click="StopSimulationButton_Click" Margin="10" Width="150" IsEnabled="False"/>
+        </StackPanel>
+
+        <!-- Labels for Alarm Status -->
+        <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="1" Margin="10">
+            <Label x:Name="labelLowAlarm" Content="No low Alarm"/>
+            <Label x:Name="labelHighAlarm" Content="No high Alarm"/>
+
+            <Label Content="Parameter:" />
+            <ComboBox x:Name="comboBoxParameters" Width="250" IsEnabled="False" SelectionChanged="ComboBoxParameters_SelectionChanged">
+                <ComboBoxItem Content="ECG" IsSelected="True"/>
+                <ComboBoxItem Content="EEG" />
+                <ComboBoxItem Content="EMG" />
+                <ComboBoxItem Content="Respiration" />
+            </ComboBox>
+
+            <Label Content="Harmonics:" />
+            <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False" SelectionChanged="ComboBoxHarmonics_SelectionChanged">
+                <ComboBoxItem Content="1" IsSelected="True"/>
+                <ComboBoxItem Content="2" />
+                <ComboBoxItem Content="3" />
+            </ComboBox>
+        </StackPanel>
+
     </Grid>
 </Window>
