@@ -7,7 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Media.Imaging;
 
-namespace MonitorImageStrings
+namespace PatientMonitor
 {
     internal class MRImages
     {
