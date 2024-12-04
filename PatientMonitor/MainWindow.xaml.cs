@@ -6,7 +6,6 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using System.IO;
-using MonitorImageStrings;
 using System.Windows.Media;
 using System.Windows.Controls.Primitives;
 
