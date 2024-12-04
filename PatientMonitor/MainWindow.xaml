@@ -6,113 +6,143 @@
         xmlns:toolkit="http://schemas.microsoft.com/winfx/2006/xaml/presentation/toolkit"
         x:Class="PatientMonitor.MainWindow"
         mc:Ignorable="d"
-        Title="Patient Monitor" Height="800" Width="1100">
+        Title="Patient Monitor" Height="720" Width="1240">
 
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="325"/>
+            <RowDefinition Height="350"/>
         </Grid.RowDefinitions>
 
-        <!-- Real-time Chart -->
         <toolkit:Chart x:Name="ChartECG" Title="Real-time Parameter"
-                       VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                       VerticalAlignment="Top"
                        Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                       Width="Auto" Height="300" Margin="10">
-            <toolkit:LineSeries x:Name="lineSeries" Title="Series 1"
+                       Width="Auto" Height="300" Margin="10,10,10,0" Grid.RowSpan="3">
+            <toolkit:LineSeries x:Name="lineSeries" Title=""
                                 IndependentValueBinding="{Binding Key}"
-                                DependentValueBinding="{Binding Value}" />
+                                DependentValueBinding="{Binding Value}">
+                <toolkit:LineSeries.DataPointStyle>
+                    <Style TargetType="toolkit:LineDataPoint">
+                        <Setter Property="Background" Value="Orange"/>
+                    </Style>
+                </toolkit:LineSeries.DataPointStyle>
+            </toolkit:LineSeries>
         </toolkit:Chart>
 
-        <!-- StackPanel for MR Images -->
-        <StackPanel Orientation="Vertical"  Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
-            <Label Content="MR Images" HorizontalAlignment="Center"/>
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="prevImageButton" Content="Prev" Width="75" Margin="5" IsEnabled="False"/>
-                <!-- Falta funcionalidad  Click="PrevImageButton_Click"-->
-                <Button x:Name="loadImagesButton" Content="Load Image" Click="LoadImagesButton_Click" Width="100" Margin="5" IsEnabled="False"/>
-                <Button x:Name="nextImageButton" Content="Next" Width="75" Margin="5" IsEnabled="False"/>
-                <!-- Falta funcionalidad Click="NextImageButton_Click"-->
+        <toolkit:Chart x:Name="FrequencyChart" Title="Frequency Analysis"
+               VerticalAlignment="Top"
+               Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="1"
+               Width="Auto" Height="300" Margin="10,10,10,0">
+            <toolkit:LineSeries x:Name="lineSeries1" Title=""
+                    IndependentValueBinding="{Binding Key}"
+                    DependentValueBinding="{Binding Value}">
+                <toolkit:LineSeries.DataPointStyle>
+                    <Style TargetType="toolkit:LineDataPoint">
+                        <Setter Property="Background" Value="Orange"/>
+                    </Style>
+                </toolkit:LineSeries.DataPointStyle>
+            </toolkit:LineSeries>
+        </toolkit:Chart>
+
+        <Button x:Name="fftButton" Content="FFT" Grid.Column="0" Grid.Row="1" Margin="329,110,36,209" FontSize="15" Click="fftButton_Click"/>
+
+        <GroupBox Header="MR Images" Grid.Column="2" Grid.Row="0" FontSize="15" Margin="10,10,10,10">
+            <StackPanel Orientation="Vertical"  Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10">
+                <Label Content="MaxImages" HorizontalAlignment="Right" FontSize="10"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="buttonBack" Content="Prev" Width="50" Margin="5" IsEnabled="False" Click="buttonBack_Click"/>
+                    <Button x:Name="loadImagesButton" Content="Load Image" Width="120" Click="LoadImagesButton_Click" Margin="5" IsEnabled="False"/>
+                    <Button x:Name="buttonForth" Content="Next" Width="50" Margin="5" IsEnabled="False" Click="buttonForth_Click"/>
+                    <TextBox x:Name="numImages" Width="50" Margin="5" IsEnabled="False" TextChanged="numImages_TextChanged"/>
+                </StackPanel>
+                <Image x:Name="imageViewer" Width="200" Height="200" Margin="10"/>
             </StackPanel>
-            <Image x:Name="imageViewer" Width="200" Height="200" Margin="10"/>
-        </StackPanel>
+        </GroupBox>
 
-        <!-- StackPanel for Patient -->
-        <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1" Margin="10">
-            <Label Content="Input Patient" FontWeight="Bold"/>
-            <Label Content="Patient Name:" />
-            <TextBox x:Name="textBoxName" Width="200" />
+        <GroupBox Header="Parameters" Grid.Column="1" Grid.Row="2" FontSize="15" Margin="10,10,10,10">
+            <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="10">
+                <Label Content="Amplitude (mV)" Margin="5,5,5,0" />
+                <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="275" ValueChanged="SliderAmplitude_ValueChanged" />
 
-            <Label Content="Patient Age:" />
-            <TextBox x:Name="textBoxAge" Width="200" PreviewTextInput="textBoxAge_PreviewTextInput"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="0 mV" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <TextBlock Text="2.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="7.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                    <TextBlock Text="10 mV" VerticalAlignment="Center" Margin="15,0,5,0"/>
+                </StackPanel>
 
-            <Label Content="Date:" />
-            <DatePicker x:Name="datePickerMonitor" Width="200" />
-
-            <Button x:Name="createPatientButton" Content="Create Patient" Click="CreatePatientButton_Click" Width="150" Margin="5"/>
-            <Button x:Name="updatePatientButton" Content="Update Patient" Width="150" Margin="5" IsEnabled="False"/>
-            <!-- Falta funcionalidad Click="UpdatePatientButton_Click"-->
-        </StackPanel>
-
-        <!-- StackPanel for Parameters (center) -->
-        <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="10">
-            <Label Content="Parameters" FontWeight="Bold"/>
-            <Label Content="Amplitude (mV)" Margin="5,5,5,0" />
-            <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="250" ValueChanged="SliderAmplitude_ValueChanged" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock Text="0 mV" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                <TextBlock Text="2.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="7.5 mV" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <TextBlock Text="10 mV" VerticalAlignment="Center" Margin="15,0,5,0"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <Label Content="Freq:" Margin="5,5,5,0"/>
+                        <TextBox x:Name="textBoxFrequency" TextChanged="textBoxFrequency_TextChanged" />
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <Label Content="Low Alarm:" Margin="5,5,5,0"/>
+                        <TextBox x:Name="textBoxLowAlarm" TextChanged="textBoxLowAlarm_TextChanged" />
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <Label Content="High Alarm:" Margin="5,5,5,0"/>
+                        <TextBox x:Name="textBoxHighAlarm" TextChanged="textBoxHighAlarm_TextChanged" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <Label Content="Parameter"/>
+                        <ComboBox x:Name="comboBoxParameters" IsEnabled="False" SelectionChanged="ComboBoxParameters_SelectionChanged">
+                            <ComboBoxItem Content="ECG" IsSelected="True"/>
+                            <ComboBoxItem Content="EEG" />
+                            <ComboBoxItem Content="EMG" />
+                            <ComboBoxItem Content="Respiration" />
+                        </ComboBox>
+                    </StackPanel>
+                    <Label Content="                               " HorizontalAlignment="Center" FontSize="5"/>
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <Label Content="Harmonics:" />
+                        <ComboBox x:Name="comboBoxHarmonics" IsEnabled="False" SelectionChanged="ComboBoxHarmonics_SelectionChanged">
+                            <ComboBoxItem Content="1" IsSelected="True"/>
+                            <ComboBoxItem Content="2" />
+                            <ComboBoxItem Content="3" />
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+                <Label Content="" HorizontalAlignment="Center" FontSize="15"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="startSimulationButton" HorizontalAlignment="Left" Content="Start Simulation" Click="StartSimulationButton_Click" IsEnabled="False"/>
+                    <Label Content="                             " HorizontalAlignment="Center" FontSize="5"/>
+                    <Button x:Name="stopSimulationButton" HorizontalAlignment="Right" Content="Stop Simulation" Click="StopSimulationButton_Click" IsEnabled="False"/>
+                </StackPanel>
             </StackPanel>
+        </GroupBox>
 
-            <Label Content="Frequency:" />
-            <TextBox x:Name="textBoxFrequency" Width="250" TextChanged="textBoxFrequency_TextChanged" />
+        <GroupBox Header="Input Patient" Grid.Column="2" Grid.Row="2" FontSize="15" Margin="10,10,10,10">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10">
+                <Label Content="Patient Name:"/>
+                <TextBox x:Name="textBoxName" Width="280" />
 
-            <Label Content="Low Alarm:" />
-            <TextBox x:Name="textBoxLowAlarm" Width="250" TextChanged="textBoxLowAlarm_TextChanged" />
+                <Label Content="Patient Age:" />
+                <TextBox x:Name="textBoxAge" Width="280" PreviewTextInput="textBoxAge_PreviewTextInput"/>
 
-            <Label Content="High Alarm:" />
-            <TextBox x:Name="textBoxHighAlarm" Width="250" TextChanged="textBoxHighAlarm_TextChanged" />
+                <Label Content="Date:" />
+                <DatePicker x:Name="datePickerMonitor" Width="280" Margin="5" />
 
-        </StackPanel>
-
-        <!-- Controls at the Bottom (start, stop, radio buttons) -->
-        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="299,0,0,99">
-            <RadioButton x:Name="timeRadioButton" Content="Time" GroupName="View" Checked="RadioButton_Checked" IsChecked="True"/>
-            <RadioButton x:Name="frequencyRadioButton" Content="Frequency" GroupName="View" Checked="RadioButton_Checked" Margin="10,0,0,0"/>
-            <Button x:Name="startSimulationButton" Content="Start Simulation" Click="StartSimulationButton_Click" Margin="10" Width="150"/>
-            <Button x:Name="stopSimulationButton" Content="Stop Simulation" Click="StopSimulationButton_Click" Margin="10" Width="150" IsEnabled="False"/>
-        </StackPanel>
-
-        <!-- Labels for Alarm Status -->
-        <StackPanel Orientation="Vertical" Grid.Column="2" Grid.Row="1" Margin="10">
-            <Label x:Name="labelLowAlarm" Content=""/>
-            <Label x:Name="labelHighAlarm" Content=""/>
-
-            <Label Content="Parameter:" />
-            <ComboBox x:Name="comboBoxParameters" Width="250" IsEnabled="False" SelectionChanged="ComboBoxParameters_SelectionChanged">
-                <ComboBoxItem Content="ECG" IsSelected="True"/>
-                <ComboBoxItem Content="EEG" />
-                <ComboBoxItem Content="EMG" />
-                <ComboBoxItem Content="Respiration" />
-            </ComboBox>
-
-            <Label Content="Harmonics:" />
-            <ComboBox x:Name="comboBoxHarmonics" Width="250" IsEnabled="False" SelectionChanged="ComboBoxHarmonics_SelectionChanged">
-                <ComboBoxItem Content="1" IsSelected="True"/>
-                <ComboBoxItem Content="2" />
-                <ComboBoxItem Content="3" />
-            </ComboBox>
-        </StackPanel>
-
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="5">
+                    <Label Content="" HorizontalAlignment="Center" FontSize="5"/>
+                    <Button x:Name="createPatientButton" Content="Create Patient" Click="CreatePatientButton_Click" Width="280"/>
+                    <Label Content="" HorizontalAlignment="Center" FontSize="5"/>
+                    <Button x:Name="updatePatientButton" Content="Update Patient" Width="280" IsEnabled="False"/>
+                </StackPanel>
+                <!-- Falta funcionalidad Click="UpdatePatientButton_Click"-->
+            </StackPanel>
+        </GroupBox>
+        
+        <Label x:Name="labelLowAlarm" Content="" Margin="20,10,0,0" FontSize="20"/>
+        <Label x:Name="labelHighAlarm" Content="" Margin="20,30,0,0" FontSize="20"/>
     </Grid>
 </Window>

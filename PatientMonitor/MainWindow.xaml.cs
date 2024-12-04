@@ -6,6 +6,9 @@ using System.Windows.Threading;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using System.IO;
+using MonitorImageStrings;
+using System.Windows.Media;
+using System.Windows.Controls.Primitives;
 
 namespace PatientMonitor
 {
@@ -16,9 +19,11 @@ namespace PatientMonitor
         private DispatcherTimer timer;
         private double timeIndex;
         private List<KeyValuePair<int, double>> dataPoints;
+        private List<KeyValuePair<int, double>> dataPoints1;
         private int index;
         private double lastValidFrequency = 0.0;
         private Spektrum spektrum;
+        MRImages mrImages;
 
         public MainWindow()
         {
@@ -30,13 +35,15 @@ namespace PatientMonitor
             timer.Tick += Timer_Tick;
 
             dataPoints = new List<KeyValuePair<int, double>>();
+            dataPoints1 = new List<KeyValuePair<int, double>>();
             lineSeries.ItemsSource = dataPoints;
+            lineSeries1.ItemsSource = dataPoints1;
 
             comboBoxParameters.SelectionChanged += ComboBoxParameters_SelectionChanged;
 
             spektrum = new Spektrum(128); // FFT con 128 samples en vez de 512 samples
+            mrImages = new MRImages();
 
-            // Disable UI controls until a patient is created
             DisableUIElements();
         }
 
@@ -44,6 +51,11 @@ namespace PatientMonitor
         {
             patient = null;
             comboBoxParameters.SelectedIndex = 0;
+
+            buttonBack.IsEnabled = false;
+            buttonForth.IsEnabled = false;
+            numImages.IsEnabled = false;
+            numImages.Text = "10";
         }
 
         private void DisableUIElements()
@@ -55,8 +67,7 @@ namespace PatientMonitor
             comboBoxHarmonics.IsEnabled = false;
             startSimulationButton.IsEnabled = false;
             stopSimulationButton.IsEnabled = false;
-            timeRadioButton.IsEnabled = false;
-            frequencyRadioButton.IsEnabled = false;
+            loadImagesButton.IsEnabled = false;
         }
 
         private void EnableUIElements()
@@ -67,27 +78,32 @@ namespace PatientMonitor
             textBoxHighAlarm.IsEnabled = true;
             comboBoxHarmonics.IsEnabled = true;
             startSimulationButton.IsEnabled = true;
-            timeRadioButton.IsEnabled = true;
-            frequencyRadioButton.IsEnabled = true;
+            loadImagesButton.IsEnabled = true;
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (patient == null) return;
 
+            // Fetch the next time sample
             double nextSample = patient.NextSample(timeIndex, selectedParameter);
+
+            // Add the sample to the time-based data list
             dataPoints.Add(new KeyValuePair<int, double>(index++, nextSample));
 
+            // Remove oldest sample if list exceeds desired size
             if (dataPoints.Count > 200)
             {
                 dataPoints.RemoveAt(0);
             }
 
+            // Update the time line series
             lineSeries.ItemsSource = null;
             lineSeries.ItemsSource = dataPoints;
 
             timeIndex += 0.1;
         }
+
 
         private void StartSimulationButton_Click(object sender, RoutedEventArgs e)
         {
@@ -101,6 +117,8 @@ namespace PatientMonitor
             index = 0;
             dataPoints.Clear();
             timer.Start();
+
+            DisplayTime();
 
             stopSimulationButton.IsEnabled = true;
         }
@@ -138,26 +156,14 @@ namespace PatientMonitor
             double[] lastSamples = patient.GetLastNSamples(512);
             double[] fftOutput = spektrum.FFT(lastSamples, lastSamples.Length);
 
-            dataPoints.Clear();
+            dataPoints1.Clear();
             for (int i = 0; i < fftOutput.Length; i++)
             {
-                dataPoints.Add(new KeyValuePair<int, double>(i, fftOutput[i]));
+                dataPoints1.Add(new KeyValuePair<int, double>(i, fftOutput[i]));
             }
 
-            lineSeries.ItemsSource = null;
-            lineSeries.ItemsSource = dataPoints;
-        }
-
-        private void RadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            if (timeRadioButton.IsChecked == true)
-            {
-                DisplayTime();
-            }
-            else if (frequencyRadioButton.IsChecked == true)
-            {
-                DisplayFrequency();
-            }
+            lineSeries1.ItemsSource = null;
+            lineSeries1.ItemsSource = dataPoints1;
         }
 
         private void CreatePatientButton_Click(object sender, RoutedEventArgs e)
@@ -288,7 +294,29 @@ namespace PatientMonitor
             else
             {
                 MessageBox.Show("Please enter a valid non-negative frequency.");
-                textBoxFrequency.Text = lastValidFrequency.ToString(); // Revert to last valid frequency
+                textBoxFrequency.Text = lastValidFrequency.ToString();
+            }
+
+            double lowAlarm = 0.0;
+            double highAlarm = 0.0;
+
+            if (!double.TryParse(textBoxLowAlarm.Text, out lowAlarm))
+            {
+                lowAlarm = 0.0;  // Default to 0 if parsing fails
+            }
+
+            if (!double.TryParse(textBoxHighAlarm.Text, out highAlarm))
+            {
+                highAlarm = 0.0;  // Default to 0 if parsing fails
+            }
+
+            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
+            {
+                labelLowAlarm.Content = "Low Alarm: " + frequency;
+            }
+            else if (frequency > highAlarm)
+            {
+                labelHighAlarm.Content = "High Alarm: " + frequency;
             }
         }
 
@@ -319,6 +347,10 @@ namespace PatientMonitor
             {
                 labelLowAlarm.Content = "Low Alarm: " + frequency;
             }
+            else
+            {
+                labelLowAlarm.Content = "";
+            }
         }
 
         private void textBoxHighAlarm_TextChanged(object sender, TextChangedEventArgs e)
@@ -347,17 +379,96 @@ namespace PatientMonitor
             if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency > highAlarm) { 
                 labelHighAlarm.Content = "High Alarm: " + frequency;
             }
+            else
+            {
+                labelHighAlarm.Content = "";
+            }
+        }
+
+        private void fftButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (patient == null) return;
+
+            // Fetch the last 512 samples for the FFT calculation
+            double[] lastSamples = patient.GetLastNSamples(512);
+            if (lastSamples.Length < 128)
+            {
+                MessageBox.Show("Not enough samples collected for FFT calculation.");
+                return;
+            }
+
+            // Perform the FFT
+            double[] fftOutput = spektrum.FFT(lastSamples, lastSamples.Length);
+
+            // Update the frequency data points
+            dataPoints1.Clear();
+            for (int i = 0; i < fftOutput.Length; i++)
+            {
+                dataPoints1.Add(new KeyValuePair<int, double>(i, fftOutput[i]));
+            }
+
+            // Update the frequency line series
+            lineSeries1.ItemsSource = null;
+            lineSeries1.ItemsSource = dataPoints1;
         }
 
         private void LoadImagesButton_Click(object sender, RoutedEventArgs e)
         {
+            string imageFile;
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+            openFileDialog.Filter = "Image files (*.bmp;*.jpg;*.jpeg;*.png)|*.bmp;*.jpg;*.jpeg;*.png|All files (*.*)|*.*";
+
+            MessageBox.Show("Valid name format for image files: " +
+                "\nBASE**.ext\nBASE is an arbitrary string\n** are 2 digits\n.ext is the image format");
+
+            // Show the dialog and check if the result is OK
             if (openFileDialog.ShowDialog() == true)
             {
-                BitmapImage bitmap = new BitmapImage(new Uri(openFileDialog.FileName));
-                imageViewer.Source = bitmap;
+                imageFile = openFileDialog.FileName;
+                mrImages.LoadImages(imageFile);
+
+                // Update the viewer with the first image if it exists
+                if (mrImages.AnImage != null)
+                {
+                    imageViewer.Source = mrImages.AnImage;
+
+                    // Enable other controls after loading images
+                    buttonBack.IsEnabled = true;
+                    buttonForth.IsEnabled = true;
+                    numImages.IsEnabled = true;
+                }
             }
+        }
+
+
+        private void buttonBack_Click(object sender, RoutedEventArgs e)
+        {
+            mrImages.BackImages();
+            imageViewer.Source = mrImages.AnImage;
+        }
+
+        private void numImages_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (mrImages == null)
+            {
+                return;
+            }
+
+            if (int.TryParse(numImages.Text, out int max))
+            {
+                mrImages.MaxImages = max;
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid number for max images.");
+            }
+        }
+
+
+        private void buttonForth_Click(object sender, RoutedEventArgs e)
+        {
+            mrImages.ForwardImages();
+            imageViewer.Source = mrImages.AnImage;
         }
     }
 }
