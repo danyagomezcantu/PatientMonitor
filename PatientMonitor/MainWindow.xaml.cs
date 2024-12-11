@@ -4,18 +4,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using System.Windows.Media.Imaging;
-using System.IO;
-using MonitorImageStrings;
-using System.Windows.Media;
-using System.Windows.Controls.Primitives;
 
 namespace PatientMonitor
 {
     public partial class MainWindow : Window
     {
         private Patient patient;
-        private MonitorConstants.Parameter selectedParameter = MonitorConstants.Parameter.ECG;
+        private Stationary stationary;
+        private Database database;
+        private MonitorConstants.Parameter selectedParameter;
         private DispatcherTimer timer;
         private double timeIndex;
         private List<KeyValuePair<int, double>> dataPoints;
@@ -24,14 +21,18 @@ namespace PatientMonitor
         private double lastValidFrequency = 0.0;
         private Spektrum spektrum;
         MRImages mrImages;
+        public MonitorConstants.clinic clinic;
 
         public MainWindow()
         {
             InitializeComponent();
+            database = new Database();
             InitializeDefaults();
 
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(100);
+            timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
             timer.Tick += Timer_Tick;
 
             dataPoints = new List<KeyValuePair<int, double>>();
@@ -39,23 +40,28 @@ namespace PatientMonitor
             lineSeries.ItemsSource = dataPoints;
             lineSeries1.ItemsSource = dataPoints1;
 
-            comboBoxParameters.SelectionChanged += ComboBoxParameters_SelectionChanged;
-
-            spektrum = new Spektrum(128); // FFT con 128 samples en vez de 512 samples
+            spektrum = new Spektrum(512);
             mrImages = new MRImages();
 
             DisableUIElements();
+            InitializeDefaults();
         }
 
         private void InitializeDefaults()
         {
-            patient = null;
+            // ItemsSource también podían declararse en el XAML
+            comboBoxClinic.ItemsSource = Enum.GetValues(typeof(MonitorConstants.clinic));
+            comboBoxParameters.ItemsSource = Enum.GetValues(typeof(MonitorConstants.Parameter));
             comboBoxParameters.SelectedIndex = 0;
+            selectedParameter = MonitorConstants.Parameter.ECG;
 
+            patient = null;
             buttonBack.IsEnabled = false;
             buttonForth.IsEnabled = false;
             numImages.IsEnabled = false;
             numImages.Text = "10";
+
+            DisableUIElements();
         }
 
         private void DisableUIElements()
@@ -81,29 +87,117 @@ namespace PatientMonitor
             loadImagesButton.IsEnabled = true;
         }
 
+        private void CreatePatientButton_Click(object sender, RoutedEventArgs e)
+        {
+            string name = textBoxName.Text;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                MessageBox.Show("Please enter a valid patient name.");
+                return;
+            }
+
+            if (!int.TryParse(textBoxAge.Text, out int age) || age <= 0)
+            {
+                MessageBox.Show("Please enter a valid age.");
+                return;
+            }
+
+            if (!datePickerMonitor.SelectedDate.HasValue)
+            {
+                MessageBox.Show("Please select a valid date.");
+                return;
+            }
+
+            DateTime dateOfStudy = datePickerMonitor.SelectedDate.Value;
+            if (!double.TryParse(textBoxFrequency.Text, out double frequency)) frequency = 0.0;
+            if (!double.TryParse(textBoxLowAlarm.Text, out double lowAlarm)) lowAlarm = 0.0;
+            if (!double.TryParse(textBoxHighAlarm.Text, out double highAlarm)) highAlarm = 0.0;
+
+            MonitorConstants.clinic clinic = (MonitorConstants.clinic)comboBoxClinic.SelectedIndex;
+
+            if (radioButtonAmbulatory.IsChecked == true)
+            {
+                patient = new Patient(name, age, dateOfStudy, sliderAmplitude.Value, frequency, comboBoxHarmonics.SelectedIndex + 1, lowAlarm, highAlarm, clinic);
+                comboBoxParameters.IsEnabled = true;
+                loadImagesButton.IsEnabled = true;
+                EnableUIElements();
+                UpdateUIForSelectedParameter();
+            }
+            else if (radioButtonStationary.IsChecked == true)
+            {
+                if (!int.TryParse(textBoxRoom.Text, out int roomNumber) || roomNumber <= 0)
+                {
+                    MessageBox.Show("Please enter a valid room number for the stationary patient.");
+                    return;
+                }
+
+                stationary = new Stationary(name, age, dateOfStudy, sliderAmplitude.Value, frequency, comboBoxHarmonics.SelectedIndex + 1, lowAlarm, highAlarm, clinic, roomNumber);
+                comboBoxParameters.IsEnabled = true;
+                loadImagesButton.IsEnabled = true;
+                EnableUIElements();
+                UpdateUIForSelectedParameter();
+
+                patient = stationary;
+            }
+            else
+            {
+                MessageBox.Show("Please select if the patient is Ambulatory or Stationary.");
+                return;
+            }
+
+            database.AddPatient(patient);
+            DisplayDatabase();
+        }
+
+        private void DisplayDatabase()
+        {
+            dataGrid.ItemsSource = null;
+            dataGrid.ItemsSource = database.GetAllPatients();
+        }
+
+        private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (timer == null)
+                return;
+            selectedParameter = (MonitorConstants.Parameter)comboBoxParameters.SelectedIndex;
+            UpdateUIForSelectedParameter();
+        }
+
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if (radioButtonParameter.IsChecked == true)
+            {
+                chartParameters.Visibility = Visibility.Visible;
+                dataGrid.Visibility = Visibility.Collapsed;
+                if (labelHighAlarm != null) labelHighAlarm.Visibility = Visibility.Visible;
+                if (labelLowAlarm != null) labelLowAlarm.Visibility = Visibility.Visible;
+            }
+            else if (radioButtonDatabase.IsChecked == true)
+            {
+                chartParameters.Visibility = Visibility.Collapsed;
+                dataGrid.Visibility = Visibility.Visible;
+                if (labelHighAlarm != null) labelHighAlarm.Visibility = Visibility.Collapsed;
+                if (labelLowAlarm != null) labelLowAlarm.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             if (patient == null) return;
-
-            // Fetch the next time sample
             double nextSample = patient.NextSample(timeIndex, selectedParameter);
 
-            // Add the sample to the time-based data list
             dataPoints.Add(new KeyValuePair<int, double>(index++, nextSample));
 
-            // Remove oldest sample if list exceeds desired size
             if (dataPoints.Count > 200)
             {
                 dataPoints.RemoveAt(0);
             }
 
-            // Update the time line series
             lineSeries.ItemsSource = null;
             lineSeries.ItemsSource = dataPoints;
 
             timeIndex += 0.1;
         }
-
 
         private void StartSimulationButton_Click(object sender, RoutedEventArgs e)
         {
@@ -165,27 +259,7 @@ namespace PatientMonitor
             lineSeries1.ItemsSource = null;
             lineSeries1.ItemsSource = dataPoints1;
         }
-
-        private void CreatePatientButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(textBoxName.Text) || !int.TryParse(textBoxAge.Text, out int age) || datePickerMonitor.SelectedDate == null)
-            {
-                MessageBox.Show("Please enter valid patient details.");
-                return;
-            }
-
-            double lowAlarm = double.TryParse(textBoxLowAlarm.Text, out double lAlarm) ? lAlarm : 0.0;
-            double highAlarm = double.TryParse(textBoxHighAlarm.Text, out double hAlarm) ? hAlarm : 0.0;
-
-            patient = new Patient(textBoxName.Text, age, datePickerMonitor.SelectedDate.Value, sliderAmplitude.Value, double.TryParse(textBoxFrequency.Text, out double freq) ? freq : 0.0, 1, lowAlarm, highAlarm);
-
-            updatePatientButton.IsEnabled = true;
-            comboBoxParameters.IsEnabled = true;
-            loadImagesButton.IsEnabled = true; // Enable Load Images Button
-            EnableUIElements(); // Enable controls after creating a patient
-            UpdateUIForSelectedParameter();
-        }
-
+   
         private void UpdateUIForSelectedParameter()
         {
             if (patient == null) return;
@@ -238,21 +312,6 @@ namespace PatientMonitor
             e.Handled = !int.TryParse(e.Text, out _);
         }
 
-        private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (timer == null)
-                return;
-
-            selectedParameter = (MonitorConstants.Parameter)comboBoxParameters.SelectedIndex;
-            UpdateUIForSelectedParameter();
-
-            if (timer.IsEnabled)
-            {
-                // timeIndex = 0;
-                // dataPoints.Clear();
-            }
-        }
-
         private void SliderAmplitude_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (patient == null) return;
@@ -302,12 +361,12 @@ namespace PatientMonitor
 
             if (!double.TryParse(textBoxLowAlarm.Text, out lowAlarm))
             {
-                lowAlarm = 0.0;  // Default to 0 if parsing fails
+                lowAlarm = 0.0;
             }
 
             if (!double.TryParse(textBoxHighAlarm.Text, out highAlarm))
             {
-                highAlarm = 0.0;  // Default to 0 if parsing fails
+                highAlarm = 0.0;
             }
 
             if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
@@ -389,25 +448,21 @@ namespace PatientMonitor
         {
             if (patient == null) return;
 
-            // Fetch the last 512 samples for the FFT calculation
             double[] lastSamples = patient.GetLastNSamples(512);
-            if (lastSamples.Length < 128)
+            if (lastSamples.Length < 512)
             {
                 MessageBox.Show("Not enough samples collected for FFT calculation.");
                 return;
             }
 
-            // Perform the FFT
             double[] fftOutput = spektrum.FFT(lastSamples, lastSamples.Length);
 
-            // Update the frequency data points
             dataPoints1.Clear();
             for (int i = 0; i < fftOutput.Length; i++)
             {
                 dataPoints1.Add(new KeyValuePair<int, double>(i, fftOutput[i]));
             }
 
-            // Update the frequency line series
             lineSeries1.ItemsSource = null;
             lineSeries1.ItemsSource = dataPoints1;
         }
@@ -421,25 +476,21 @@ namespace PatientMonitor
             MessageBox.Show("Valid name format for image files: " +
                 "\nBASE**.ext\nBASE is an arbitrary string\n** are 2 digits\n.ext is the image format");
 
-            // Show the dialog and check if the result is OK
             if (openFileDialog.ShowDialog() == true)
             {
                 imageFile = openFileDialog.FileName;
                 mrImages.LoadImages(imageFile);
 
-                // Update the viewer with the first image if it exists
                 if (mrImages.AnImage != null)
                 {
                     imageViewer.Source = mrImages.AnImage;
 
-                    // Enable other controls after loading images
                     buttonBack.IsEnabled = true;
                     buttonForth.IsEnabled = true;
                     numImages.IsEnabled = true;
                 }
             }
         }
-
 
         private void buttonBack_Click(object sender, RoutedEventArgs e)
         {
@@ -463,12 +514,20 @@ namespace PatientMonitor
                 MessageBox.Show("Please enter a valid number for max images.");
             }
         }
-
-
         private void buttonForth_Click(object sender, RoutedEventArgs e)
         {
             mrImages.ForwardImages();
             imageViewer.Source = mrImages.AnImage;
+        }
+
+        private void radioButtonAmbulatory_Checked(object sender, RoutedEventArgs e)
+        {
+            textBoxRoom.IsEnabled = false;
+        }
+
+        private void radioButtonStationary_Checked(object sender, RoutedEventArgs e)
+        {
+            textBoxRoom.IsEnabled = true;
         }
     }
 }

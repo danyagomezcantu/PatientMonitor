@@ -5,14 +5,20 @@ namespace PatientMonitor
 {
     public class Patient
     {
-        private ECG eCG;
+        private MonitorConstants.clinic clinic;
 
         public string PatientName { get; set; }
         public int Age { get; set; }
         public DateTime DateOfStudy { get; set; }
+        public ECG ECG { get; set; }
+        public MonitorConstants.clinic Clinic
+        {
+            get { return clinic; }
+            set { clinic = value; }
+        }
+        public virtual string Room => "No room";
 
-        public ECG ECG { get => eCG; set => eCG = value; }
-
+        public virtual string Type => "Ambulatory";
         public int ECGHarmonics { get => ECG.Harmonics; set => ECG.Harmonics = value; }
         public EEG EEG { get; set; }
         public EMG EMG { get; set; }
@@ -20,14 +26,14 @@ namespace PatientMonitor
 
         private List<double> samples;
         private const int maxSamples = 1024;
-
-        public Patient(string name, int age, DateTime date, double ecgAmplitude, double ecgFrequency, int harmonics, double lowAlarm, double highAlarm)
+        public Patient(string name, int age, DateTime date, double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm, MonitorConstants.clinic clinic)
         {
             PatientName = name;
             Age = age;
             DateOfStudy = date;
+            this.clinic = clinic;
 
-            ECG = new ECG(ecgAmplitude, ecgFrequency, harmonics, lowAlarm, highAlarm);
+            ECG = new ECG(amplitude, frequency, harmonics, lowAlarm, highAlarm);
             EEG = new EEG(0, 0, 1, lowAlarm, highAlarm);
             EMG = new EMG(0, 0, 1, lowAlarm, highAlarm);
             Resp = new Resp(0, 0, 1, lowAlarm, highAlarm);
