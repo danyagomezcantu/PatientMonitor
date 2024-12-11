@@ -81,5 +81,31 @@ namespace PatientMonitor
 
             return samples.GetRange(samples.Count - n, n).ToArray();
         }
+
+        public void UpdateAlarms(MonitorConstants.Parameter parameter)
+        {
+            switch (parameter)
+            {
+                case MonitorConstants.Parameter.ECG:
+                    ECG.DisplayLowAlarm();
+                    ECG.DisplayHighAlarm();
+                    break;
+
+                case MonitorConstants.Parameter.EEG:
+                    EEG.DisplayLowAlarm();
+                    EEG.DisplayHighAlarm();
+                    break;
+
+                case MonitorConstants.Parameter.EMG:
+                    EMG.DisplayLowAlarm();
+                    EMG.DisplayHighAlarm();
+                    break;
+
+                case MonitorConstants.Parameter.Resp:
+                    Resp.DisplayLowAlarm();
+                    Resp.DisplayHighAlarm();
+                    break;
+            }
+        }
     }
 }

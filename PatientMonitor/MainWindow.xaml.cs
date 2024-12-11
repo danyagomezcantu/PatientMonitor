@@ -157,27 +157,40 @@ namespace PatientMonitor
 
         private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (timer == null)
-                return;
+            if (timer == null) return;
+
             selectedParameter = (MonitorConstants.Parameter)comboBoxParameters.SelectedIndex;
             UpdateUIForSelectedParameter();
-        }
 
+            patient?.UpdateAlarms(selectedParameter);
+        }
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
             if (radioButtonParameter.IsChecked == true)
             {
                 chartParameters.Visibility = Visibility.Visible;
                 dataGrid.Visibility = Visibility.Collapsed;
+
                 if (labelHighAlarm != null) labelHighAlarm.Visibility = Visibility.Visible;
                 if (labelLowAlarm != null) labelLowAlarm.Visibility = Visibility.Visible;
+
+                textBoxFrequency.IsEnabled = true;
+                textBoxLowAlarm.IsEnabled = true;
+                textBoxHighAlarm.IsEnabled = true;
+                sliderAmplitude.IsEnabled = true;
             }
             else if (radioButtonDatabase.IsChecked == true)
             {
                 chartParameters.Visibility = Visibility.Collapsed;
                 dataGrid.Visibility = Visibility.Visible;
+
                 if (labelHighAlarm != null) labelHighAlarm.Visibility = Visibility.Collapsed;
                 if (labelLowAlarm != null) labelLowAlarm.Visibility = Visibility.Collapsed;
+
+                textBoxFrequency.IsEnabled = false;
+                textBoxLowAlarm.IsEnabled = false;
+                textBoxHighAlarm.IsEnabled = false;
+                sliderAmplitude.IsEnabled = false;
             }
         }
 
@@ -259,7 +272,7 @@ namespace PatientMonitor
             lineSeries1.ItemsSource = null;
             lineSeries1.ItemsSource = dataPoints1;
         }
-   
+        
         private void UpdateUIForSelectedParameter()
         {
             if (patient == null) return;
@@ -268,35 +281,30 @@ namespace PatientMonitor
             {
                 case MonitorConstants.Parameter.ECG:
                     sliderAmplitude.Value = patient.ECG.Amplitude;
-                    textBoxFrequency.Text = patient.ECG.Frequency.ToString();
-                    textBoxLowAlarm.Text = patient.ECG.LowAlarm.ToString();
-                    textBoxHighAlarm.Text = patient.ECG.HighAlarm.ToString();
                     comboBoxHarmonics.IsEnabled = true;
                     comboBoxHarmonics.SelectedIndex = patient.ECG.Harmonics - 1;
                     break;
+
                 case MonitorConstants.Parameter.EEG:
                     sliderAmplitude.Value = patient.EEG.Amplitude;
-                    textBoxFrequency.Text = patient.EEG.Frequency.ToString();
-                    textBoxLowAlarm.Text = patient.EEG.LowAlarm.ToString();
-                    textBoxHighAlarm.Text = patient.EEG.HighAlarm.ToString();
                     comboBoxHarmonics.IsEnabled = false;
                     break;
+
                 case MonitorConstants.Parameter.EMG:
                     sliderAmplitude.Value = patient.EMG.Amplitude;
-                    textBoxFrequency.Text = patient.EMG.Frequency.ToString();
-                    textBoxLowAlarm.Text = patient.EMG.LowAlarm.ToString();
-                    textBoxHighAlarm.Text = patient.EMG.HighAlarm.ToString();
                     comboBoxHarmonics.IsEnabled = false;
                     break;
+
                 case MonitorConstants.Parameter.Resp:
                     sliderAmplitude.Value = patient.Resp.Amplitude;
-                    textBoxFrequency.Text = patient.Resp.Frequency.ToString();
-                    textBoxLowAlarm.Text = patient.Resp.LowAlarm.ToString();
-                    textBoxHighAlarm.Text = patient.Resp.HighAlarm.ToString();
                     comboBoxHarmonics.IsEnabled = false;
                     break;
             }
+            patient.UpdateAlarms(selectedParameter);
+            UpdateAlarmLabels();
         }
+
+
         private void ComboBoxHarmonics_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (patient == null) return;
@@ -327,122 +335,113 @@ namespace PatientMonitor
 
         private void textBoxFrequency_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (patient == null) return;
+            if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
-            bool isValidFreq = double.TryParse(textBoxFrequency.Text, out double parameterFreq);
-
-            if (isValidFreq && parameterFreq >= 0)
+            if (double.TryParse(textBoxFrequency.Text, out double frequency))
             {
-                lastValidFrequency = parameterFreq;
+                lastValidFrequency = frequency;
+
                 switch (selectedParameter)
                 {
-                    case MonitorConstants.Parameter.ECG:
-                        patient.ECG.Frequency = parameterFreq;
-                        break;
-                    case MonitorConstants.Parameter.EEG:
-                        patient.EEG.Frequency = parameterFreq;
-                        break;
-                    case MonitorConstants.Parameter.EMG:
-                        patient.EMG.Frequency = parameterFreq;
-                        break;
-                    case MonitorConstants.Parameter.Resp:
-                        patient.Resp.Frequency = parameterFreq;
-                        break;
+                    case MonitorConstants.Parameter.ECG: patient.ECG.Frequency = frequency; break;
+                    case MonitorConstants.Parameter.EEG: patient.EEG.Frequency = frequency; break;
+                    case MonitorConstants.Parameter.EMG: patient.EMG.Frequency = frequency; break;
+                    case MonitorConstants.Parameter.Resp: patient.Resp.Frequency = frequency; break;
                 }
+                patient.UpdateAlarms(selectedParameter);
+                UpdateAlarmLabels();
             }
             else
             {
                 MessageBox.Show("Please enter a valid non-negative frequency.");
                 textBoxFrequency.Text = lastValidFrequency.ToString();
             }
-
-            double lowAlarm = 0.0;
-            double highAlarm = 0.0;
-
-            if (!double.TryParse(textBoxLowAlarm.Text, out lowAlarm))
-            {
-                lowAlarm = 0.0;
-            }
-
-            if (!double.TryParse(textBoxHighAlarm.Text, out highAlarm))
-            {
-                highAlarm = 0.0;
-            }
-
-            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
-            {
-                labelLowAlarm.Content = "Low Alarm: " + frequency;
-            }
-            else if (frequency > highAlarm)
-            {
-                labelHighAlarm.Content = "High Alarm: " + frequency;
-            }
         }
 
         private void textBoxLowAlarm_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (patient == null) return;
+            if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
             if (double.TryParse(textBoxLowAlarm.Text, out double lowAlarm))
             {
                 switch (selectedParameter)
                 {
-                    case MonitorConstants.Parameter.ECG:
-                        patient.ECG.LowAlarm = lowAlarm;
-                        break;
-                    case MonitorConstants.Parameter.EEG:
-                        patient.EEG.LowAlarm = lowAlarm;
-                        break;
-                    case MonitorConstants.Parameter.EMG:
-                        patient.EMG.LowAlarm = lowAlarm;
-                        break;
-                    case MonitorConstants.Parameter.Resp:
-                        patient.Resp.LowAlarm = lowAlarm;
-                        break;
+                    case MonitorConstants.Parameter.ECG: patient.ECG.LowAlarm = lowAlarm; break;
+                    case MonitorConstants.Parameter.EEG: patient.EEG.LowAlarm = lowAlarm; break;
+                    case MonitorConstants.Parameter.EMG: patient.EMG.LowAlarm = lowAlarm; break;
+                    case MonitorConstants.Parameter.Resp: patient.Resp.LowAlarm = lowAlarm; break;
                 }
-            }
-
-            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency < lowAlarm)
-            {
-                labelLowAlarm.Content = "Low Alarm: " + frequency;
-            }
-            else
-            {
-                labelLowAlarm.Content = "";
+                patient.UpdateAlarms(selectedParameter);
+                UpdateAlarmLabels();
             }
         }
 
         private void textBoxHighAlarm_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (patient == null) return;
+            if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
             if (double.TryParse(textBoxHighAlarm.Text, out double highAlarm))
             {
                 switch (selectedParameter)
                 {
-                    case MonitorConstants.Parameter.ECG:
-                        patient.ECG.HighAlarm = highAlarm;
-                        break;
-                    case MonitorConstants.Parameter.EEG:
-                        patient.EEG.HighAlarm = highAlarm;
-                        break;
-                    case MonitorConstants.Parameter.EMG:
-                        patient.EMG.HighAlarm = highAlarm;
-                        break;
-                    case MonitorConstants.Parameter.Resp:
-                        patient.Resp.HighAlarm = highAlarm;
-                        break;
+                    case MonitorConstants.Parameter.ECG: patient.ECG.HighAlarm = highAlarm; break;
+                    case MonitorConstants.Parameter.EEG: patient.EEG.HighAlarm = highAlarm; break;
+                    case MonitorConstants.Parameter.EMG: patient.EMG.HighAlarm = highAlarm; break;
+                    case MonitorConstants.Parameter.Resp: patient.Resp.HighAlarm = highAlarm; break;
                 }
-            }
-
-            if (double.TryParse(textBoxFrequency.Text, out double frequency) && frequency > highAlarm) { 
-                labelHighAlarm.Content = "High Alarm: " + frequency;
-            }
-            else
-            {
-                labelHighAlarm.Content = "";
+                patient.UpdateAlarms(selectedParameter);
+                UpdateAlarmLabels();
             }
         }
+        private void UpdateAlarmLabels()
+        {
+            if (patient == null)
+            {
+                labelLowAlarm.Content = string.Empty;
+                labelHighAlarm.Content = string.Empty;
+                return;
+            }
+
+            if ((bool)radioButtonDatabase.IsChecked)
+            {
+                labelLowAlarm.Content = string.Empty;
+                labelHighAlarm.Content = string.Empty;
+                return;
+            }
+
+            string lowAlarm = string.Empty;
+            string highAlarm = string.Empty;
+
+            switch (selectedParameter)
+            {
+                case MonitorConstants.Parameter.ECG:
+                    lowAlarm = patient.ECG.LowAlarmString;
+                    highAlarm = patient.ECG.HighAlarmString;
+                    break;
+
+                case MonitorConstants.Parameter.EEG:
+                    lowAlarm = patient.EEG.LowAlarmString;
+                    highAlarm = patient.EEG.HighAlarmString;
+                    break;
+
+                case MonitorConstants.Parameter.EMG:
+                    lowAlarm = patient.EMG.LowAlarmString;
+                    highAlarm = patient.EMG.HighAlarmString;
+                    break;
+
+                case MonitorConstants.Parameter.Resp:
+                    lowAlarm = patient.Resp.LowAlarmString;
+                    highAlarm = patient.Resp.HighAlarmString;
+                    break;
+            }
+
+            labelLowAlarm.Content = lowAlarm;
+            labelHighAlarm.Content = highAlarm;
+
+            Console.WriteLine($"Low Alarm: {lowAlarm}, High Alarm: {highAlarm}");
+        }
+
+
 
         private void fftButton_Click(object sender, RoutedEventArgs e)
         {

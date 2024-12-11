@@ -15,15 +15,5 @@ namespace PatientMonitor
         {
             return (Frequency == 0 || Amplitude == 0) ? 0.0 : Amplitude * 100 * Math.Exp(-Frequency * timeIndex / 60.0);
         }
-
-        public void DisplayLowAlarm()
-        {
-            base.DisplayLowAlarm();
-        }
-
-        public void DisplayHighAlarm()
-        {
-            base.DisplayHighAlarm();
-        }
     }
 }

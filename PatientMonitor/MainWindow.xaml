@@ -184,7 +184,7 @@
             </StackPanel>
         </GroupBox>
 
-        <Label x:Name="labelLowAlarm" Content="" Margin="20,10,0,0" FontSize="20"/>
-        <Label x:Name="labelHighAlarm" Content="" Margin="20,30,0,0" FontSize="20"/>
+        <Label x:Name="labelLowAlarm" Content="" Visibility="Visible" Margin="20,10,0,0" FontSize="20"/>
+        <Label x:Name="labelHighAlarm" Content="" Visibility="Visible" Margin="20,30,0,0" FontSize="20"/>
     </Grid>
 </Window>

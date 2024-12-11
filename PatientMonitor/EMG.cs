@@ -20,15 +20,5 @@ namespace PatientMonitor
             double stepIndex = timeIndex % signalLength;
             return stepIndex > signalLength / 2.0 ? Amplitude : -Amplitude;
         }
-
-        public void DisplayLowAlarm()
-        {
-            base.DisplayLowAlarm();
-        }
-
-        public void DisplayHighAlarm()
-        {
-            base.DisplayHighAlarm();
-        }
     }
 }

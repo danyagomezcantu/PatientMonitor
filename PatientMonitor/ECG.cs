@@ -23,15 +23,5 @@ namespace PatientMonitor
 
             return sample * Amplitude;
         }
-
-        public void DisplayLowAlarm()
-        {
-            base.DisplayLowAlarm();
-        }
-
-        public void DisplayHighAlarm()
-        {
-            base.DisplayHighAlarm();
-        }
     }
 }

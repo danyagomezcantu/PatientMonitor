@@ -36,15 +36,5 @@ namespace PatientMonitor
             Console.WriteLine($"TimeIndex: {timeIndex}, Phase: {phase}, Value: {value}, Amplitude: {Amplitude}");
             return value;
         }
-
-        public void DisplayLowAlarm()
-        {
-            base.DisplayLowAlarm();
-        }
-
-        public void DisplayHighAlarm()
-        {
-            base.DisplayHighAlarm();
-        }
     }
 }

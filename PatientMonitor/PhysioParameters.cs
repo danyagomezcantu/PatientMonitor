@@ -13,13 +13,11 @@ namespace PatientMonitor
         private double frequency;
         private int harmonics;
 
-        // New Variables for Alarms
         private double lowAlarm;
         private double highAlarm;
         private string lowAlarmString = " ";
         private string highAlarmString = " ";
 
-        // Constructor
         public PhysioParameter(double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm)
         {
             this.amplitude = amplitude;
@@ -78,7 +76,6 @@ namespace PatientMonitor
         public string LowAlarmString => lowAlarmString;
         public string HighAlarmString => highAlarmString;
 
-        // Methods to Display Alarms
         public void DisplayLowAlarm()
         {
             if (frequency <= lowAlarm)
@@ -103,7 +100,6 @@ namespace PatientMonitor
             }
         }
 
-        // Abstract Method
         public abstract double NextSample(double timeIndex);
     }
 }
