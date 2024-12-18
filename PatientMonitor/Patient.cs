@@ -20,26 +20,52 @@ namespace PatientMonitor
 
         public virtual string Type => "Ambulatory";
         public int ECGHarmonics { get => ECG.Harmonics; set => ECG.Harmonics = value; }
+        public double ECGAmplitude { get => ECG.Amplitude; set => ECG.Amplitude = value; }
+        public double ECGFrequency { get => ECG.Frequency; set => ECG.Frequency = value; }
+        public double ECGHighAlarm { get => ECG.HighAlarm; set => ECG.HighAlarm = value; }
+        public double ECGLowAlarm { get => ECG.LowAlarm; set => ECG.LowAlarm = value; }
+        public int EEGHarmonics { get => EEG.Harmonics; set => EEG.Harmonics = value; }
+        public double EEGAmplitude { get => EEG.Amplitude; set => EEG.Amplitude = value; }
+        public double EEGFrequency { get => EEG.Frequency; set => EEG.Frequency = value; }
+        public double EEGHighAlarm { get => EEG.HighAlarm; set => EEG.HighAlarm = value; }
+        public double EEGLowAlarm { get => EEG.LowAlarm; set => EEG.LowAlarm = value; }
+        public int EMGHarmonics { get => EMG.Harmonics; set => EMG.Harmonics = value; }
+        public double EMGAmplitude { get => EMG.Amplitude; set => EMG.Amplitude = value; }
+        public double EMGFrequency { get => EMG.Frequency; set => EMG.Frequency = value; }
+        public double EMGHighAlarm { get => EMG.HighAlarm; set => EMG.HighAlarm = value; }
+        public double EMGLowAlarm { get => EMG.LowAlarm; set => EMG.LowAlarm = value; }
+        public int RespHarmonics { get => Resp.Harmonics; set => Resp.Harmonics = value; }
+        public double RespAmplitude { get => Resp.Amplitude; set => Resp.Amplitude = value; }
+        public double RespFrequency { get => Resp.Frequency; set => Resp.Frequency = value; }
+        public double RespHighAlarm { get => Resp.HighAlarm; set => Resp.HighAlarm = value; }
+        public double RespLowAlarm { get => Resp.LowAlarm; set => Resp.LowAlarm = value; }
         public EEG EEG { get; set; }
         public EMG EMG { get; set; }
         public Resp Resp { get; set; }
 
         private List<double> samples;
         private const int maxSamples = 1024;
-        public Patient(string name, int age, DateTime date, double amplitude, double frequency, int harmonics, double lowAlarm, double highAlarm, MonitorConstants.clinic clinic)
+        public Patient(
+            string name, int age, DateTime date,
+            double ecgAmplitude, double ecgFrequency, int ecgHarmonics, double ecgLowAlarm, double ecgHighAlarm,
+            double eegAmplitude, double eegFrequency, int eegHarmonics, double eegLowAlarm, double eegHighAlarm,
+            double emgAmplitude, double emgFrequency, int emgHarmonics, double emgLowAlarm, double emgHighAlarm,
+            double respAmplitude, double respFrequency, int respHarmonics, double respLowAlarm, double respHighAlarm,
+            MonitorConstants.clinic clinic)
         {
             PatientName = name;
             Age = age;
             DateOfStudy = date;
             this.clinic = clinic;
 
-            ECG = new ECG(amplitude, frequency, harmonics, lowAlarm, highAlarm);
-            EEG = new EEG(0, 0, 1, lowAlarm, highAlarm);
-            EMG = new EMG(0, 0, 1, lowAlarm, highAlarm);
-            Resp = new Resp(0, 0, 1, lowAlarm, highAlarm);
+            ECG = new ECG(ecgAmplitude, ecgFrequency, ecgHarmonics, ecgLowAlarm, ecgHighAlarm);
+            EEG = new EEG(eegAmplitude, eegFrequency, eegHarmonics, eegLowAlarm, eegHighAlarm);
+            EMG = new EMG(emgAmplitude, emgFrequency, emgHarmonics, emgLowAlarm, emgHighAlarm);
+            Resp = new Resp(respAmplitude, respFrequency, respHarmonics, respLowAlarm, respHighAlarm);
 
             samples = new List<double>();
         }
+
 
         public double NextSample(double timeIndex, MonitorConstants.Parameter parameter)
         {

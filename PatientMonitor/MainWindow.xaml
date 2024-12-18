@@ -164,21 +164,22 @@
                             <Label x:Name="labelRoom" Content="Room:"/>
                             <TextBox x:Name="textBoxRoom" Height="25" Width="98"/>
                         </StackPanel>
-                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="60,0,0,0">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" Margin="40,0,0,0">
                             <Label x:Name="labelClinic" Content="Clinic:"/>
-                            <ComboBox x:Name="comboBoxClinic" Height="25" Width="80">
+                            <ComboBox x:Name="comboBoxClinic" Height="25" Width="100">
                             </ComboBox>
                         </StackPanel>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0,5,0,5">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,5" VerticalAlignment="Center">
                         <Button x:Name="createPatientButton" Content=" Create Patient " Click="CreatePatientButton_Click" Height="35" VerticalAlignment="Center" Background="#FFC4E8FF" BorderBrush="#FF1476B5" />
-                        <Label x:Name="labelSort" Content=" sort by " Margin="15,0,15,0" VerticalAlignment="Center"/>
-                        <Label Content="Cardiology" Background="#FFE7E7E7" BorderBrush="#FFACACAC" BorderThickness="1" HorizontalAlignment="Right" VerticalAlignment="Center" Height="35" Width="80"/>
+                        <Label x:Name="labelPatient" Content="Sort by..." Margin="3,0,3,0"/>
+                        <ComboBox x:Name="comboBoxSort" Height="35"
+                            SelectionChanged="comboBoxSort_SelectionChanged"
+                            HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button x:Name="chooseDirButton" Content=" Choose Dir " IsEnabled="False" Height="25"/>
-                        <Button x:Name="loadDBButton" Content=" Load DB " IsEnabled="True" Height="25" Margin="13.5,0,13.5,0"/>
-                        <Button x:Name="saveDBButton" Content=" Save DB " IsEnabled="False" Height="25"/>
+                        <Button x:Name="loadDBButton" Content=" Load DB " IsEnabled="True" Height="25" Margin="13.5,0,13.5,0" Click="loadDBButton_Click"/>
+                        <Button x:Name="saveDBButton" Content=" Save DB " IsEnabled="False" Height="25" Click="saveDBButton_Click"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>

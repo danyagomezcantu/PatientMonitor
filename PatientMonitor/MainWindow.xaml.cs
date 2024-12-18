@@ -52,6 +52,9 @@ namespace PatientMonitor
             // ItemsSource también podían declararse en el XAML
             comboBoxClinic.ItemsSource = Enum.GetValues(typeof(MonitorConstants.clinic));
             comboBoxParameters.ItemsSource = Enum.GetValues(typeof(MonitorConstants.Parameter));
+            comboBoxSort.ItemsSource = Enum.GetValues(typeof(MonitorConstants.compareAfter));
+            comboBoxSort.SelectedIndex = 0;
+            comboBoxClinic.SelectedIndex = 0;
             comboBoxParameters.SelectedIndex = 0;
             selectedParameter = MonitorConstants.Parameter.ECG;
 
@@ -85,6 +88,7 @@ namespace PatientMonitor
             comboBoxHarmonics.IsEnabled = true;
             startSimulationButton.IsEnabled = true;
             loadImagesButton.IsEnabled = true;
+            saveDBButton.IsEnabled = true;
         }
 
         private void CreatePatientButton_Click(object sender, RoutedEventArgs e)
@@ -109,15 +113,31 @@ namespace PatientMonitor
             }
 
             DateTime dateOfStudy = datePickerMonitor.SelectedDate.Value;
-            if (!double.TryParse(textBoxFrequency.Text, out double frequency)) frequency = 0.0;
-            if (!double.TryParse(textBoxLowAlarm.Text, out double lowAlarm)) lowAlarm = 0.0;
-            if (!double.TryParse(textBoxHighAlarm.Text, out double highAlarm)) highAlarm = 0.0;
+            if (!double.TryParse(textBoxFrequency.Text, out double ecgFrequency)) ecgFrequency = 0.0;
+            if (!double.TryParse(textBoxLowAlarm.Text, out double ecgLowAlarm)) ecgLowAlarm = 0.0;
+            if (!double.TryParse(textBoxHighAlarm.Text, out double ecgHighAlarm)) ecgHighAlarm = 0.0;
+
+            double amplitude = sliderAmplitude.Value;
+            int harmonics = comboBoxHarmonics.SelectedIndex + 1;
 
             MonitorConstants.clinic clinic = (MonitorConstants.clinic)comboBoxClinic.SelectedIndex;
 
+            double defaultFrequency = 0.0;
+            int defaultHarmonics = 1;
+            double defaultLowAlarm = 0.0;
+            double defaultHighAlarm = 0.0;
+
             if (radioButtonAmbulatory.IsChecked == true)
             {
-                patient = new Patient(name, age, dateOfStudy, sliderAmplitude.Value, frequency, comboBoxHarmonics.SelectedIndex + 1, lowAlarm, highAlarm, clinic);
+                patient = new Patient(
+                    name, age, dateOfStudy,
+                    amplitude, ecgFrequency, harmonics, ecgLowAlarm, ecgHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    clinic
+                );
+
                 comboBoxParameters.IsEnabled = true;
                 loadImagesButton.IsEnabled = true;
                 EnableUIElements();
@@ -131,13 +151,20 @@ namespace PatientMonitor
                     return;
                 }
 
-                stationary = new Stationary(name, age, dateOfStudy, sliderAmplitude.Value, frequency, comboBoxHarmonics.SelectedIndex + 1, lowAlarm, highAlarm, clinic, roomNumber);
+                stationary = new Stationary(
+                    name, age, dateOfStudy,
+                    amplitude, ecgFrequency, harmonics, ecgLowAlarm, ecgHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
+                    clinic, roomNumber
+                );
+
+                patient = stationary;
                 comboBoxParameters.IsEnabled = true;
                 loadImagesButton.IsEnabled = true;
                 EnableUIElements();
                 UpdateUIForSelectedParameter();
-
-                patient = stationary;
             }
             else
             {
@@ -152,7 +179,7 @@ namespace PatientMonitor
         private void DisplayDatabase()
         {
             dataGrid.ItemsSource = null;
-            dataGrid.ItemsSource = database.GetAllPatients();
+            dataGrid.ItemsSource = database.GetPatients();
         }
 
         private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -441,8 +468,6 @@ namespace PatientMonitor
             Console.WriteLine($"Low Alarm: {lowAlarm}, High Alarm: {highAlarm}");
         }
 
-
-
         private void fftButton_Click(object sender, RoutedEventArgs e)
         {
             if (patient == null) return;
@@ -528,5 +553,56 @@ namespace PatientMonitor
         {
             textBoxRoom.IsEnabled = true;
         }
+
+        private void saveDBButton_Click(object sender, RoutedEventArgs e)
+        {
+            string patientFile = "";
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Text Files (*.txt)|*.txt|All files(*.*)|*.*";
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                patientFile = saveFileDialog.FileName;
+                database.SaveData(patientFile);
+            }
+        }
+
+        private void loadDBButton_Click(object sender, RoutedEventArgs e)
+        {
+            string patientFile = "";
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Text Files (*.txt)|*.txt|All files(*.*)|*.*";
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                patientFile = openFileDialog.FileName;
+                database.OpenData(patientFile);
+                clearDataGrid();
+                database.GetPatients();
+            }
+            DisplayDatabase();
+        }
+
+        void clearDataGrid()
+        {
+            // dataGrid.Items.Clear();
+            dataGrid.ItemsSource = null;
+            index = 0;
+        }
+
+        private void comboBoxSort_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (comboBoxSort.SelectedItem == null) return;
+
+            MonitorConstants.compareAfter selectedSort = (MonitorConstants.compareAfter)comboBoxSort.SelectedItem;
+
+            // Inicializa el PatientComparer
+            PatientComparer pc = new PatientComparer { CA = selectedSort };
+
+            database.GetPatients().Sort(pc);
+
+            DisplayDatabase();
+        }
+
     }
 }
