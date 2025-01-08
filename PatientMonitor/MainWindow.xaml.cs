@@ -94,6 +94,7 @@ namespace PatientMonitor
             textBoxLowAlarm.IsEnabled = true;
             textBoxHighAlarm.IsEnabled = true;
             comboBoxHarmonics.IsEnabled = true;
+            comboBoxParemeters.IsEnabled = true;
             startSimulationButton.IsEnabled = true;
             loadImagesButton.IsEnabled = true;
             saveDBButton.IsEnabled = true;
@@ -186,7 +187,7 @@ namespace PatientMonitor
             database.AddPatient(patient);
             DisplayDatabase();
 
-            startSimulationButton.IsEnabled = true;
+            EnableUIElements();
         }
 
         private bool ArePatientsEqual(Patient p1, Patient p2)
