@@ -7,8 +7,12 @@ using Microsoft.Win32;
 
 namespace PatientMonitor
 {
+    // This file contains the main logic for the Patient Monitor application,
+    // managing the UI and interactions between the user and the system.
+    // It handles creating patients, displaying data, and managing simulations.
     public partial class MainWindow : Window
     {
+        // Declare class variables
         private Patient patient;
         private Stationary stationary;
         private Database database;
@@ -25,6 +29,7 @@ namespace PatientMonitor
 
         public MainWindow()
         {
+            // Initialize the main window and its components
             InitializeComponent();
             database = new Database();
             InitializeDefaults();
@@ -35,6 +40,7 @@ namespace PatientMonitor
             };
             timer.Tick += Timer_Tick;
 
+            // Initialize the data points for the line series
             dataPoints = new List<KeyValuePair<int, double>>();
             dataPoints1 = new List<KeyValuePair<int, double>>();
             lineSeries.ItemsSource = dataPoints;
@@ -49,7 +55,7 @@ namespace PatientMonitor
 
         private void InitializeDefaults()
         {
-            // ItemsSource también podían declararse en el XAML
+            // Set default values for the UI elements
             comboBoxClinic.ItemsSource = Enum.GetValues(typeof(MonitorConstants.clinic));
             comboBoxParameters.ItemsSource = Enum.GetValues(typeof(MonitorConstants.Parameter));
             comboBoxSort.ItemsSource = Enum.GetValues(typeof(MonitorConstants.compareAfter));
@@ -69,6 +75,7 @@ namespace PatientMonitor
 
         private void DisableUIElements()
         {
+            // Disable the UI elements to prevent user interaction
             sliderAmplitude.IsEnabled = false;
             textBoxFrequency.IsEnabled = false;
             textBoxLowAlarm.IsEnabled = false;
@@ -81,6 +88,7 @@ namespace PatientMonitor
 
         private void EnableUIElements()
         {
+            // Enable the UI elements to allow user interaction
             sliderAmplitude.IsEnabled = true;
             textBoxFrequency.IsEnabled = true;
             textBoxLowAlarm.IsEnabled = true;
@@ -93,6 +101,7 @@ namespace PatientMonitor
 
         private void CreatePatientButton_Click(object sender, RoutedEventArgs e)
         {
+            // Create a new patient based on the user input
             string name = textBoxName.Text;
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -122,14 +131,18 @@ namespace PatientMonitor
 
             MonitorConstants.clinic clinic = (MonitorConstants.clinic)comboBoxClinic.SelectedIndex;
 
+            // Set default values for the other parameters
             double defaultFrequency = 0.0;
             int defaultHarmonics = 1;
             double defaultLowAlarm = 0.0;
             double defaultHighAlarm = 0.0;
 
+            Patient newPatient;
+
+            // Handle is the patient is stationary or ambulatory
             if (radioButtonAmbulatory.IsChecked == true)
             {
-                patient = new Patient(
+                newPatient = new Patient(
                     name, age, dateOfStudy,
                     amplitude, ecgFrequency, harmonics, ecgLowAlarm, ecgHighAlarm,
                     amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
@@ -137,11 +150,6 @@ namespace PatientMonitor
                     amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
                     clinic
                 );
-
-                comboBoxParameters.IsEnabled = true;
-                loadImagesButton.IsEnabled = true;
-                EnableUIElements();
-                UpdateUIForSelectedParameter();
             }
             else if (radioButtonStationary.IsChecked == true)
             {
@@ -151,7 +159,7 @@ namespace PatientMonitor
                     return;
                 }
 
-                stationary = new Stationary(
+                newPatient = new Stationary(
                     name, age, dateOfStudy,
                     amplitude, ecgFrequency, harmonics, ecgLowAlarm, ecgHighAlarm,
                     amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
@@ -159,12 +167,6 @@ namespace PatientMonitor
                     amplitude, defaultFrequency, defaultHarmonics, defaultLowAlarm, defaultHighAlarm,
                     clinic, roomNumber
                 );
-
-                patient = stationary;
-                comboBoxParameters.IsEnabled = true;
-                loadImagesButton.IsEnabled = true;
-                EnableUIElements();
-                UpdateUIForSelectedParameter();
             }
             else
             {
@@ -172,18 +174,52 @@ namespace PatientMonitor
                 return;
             }
 
+            // Check for duplicate patient
+            bool isDuplicate = database.GetPatients().Exists(p => ArePatientsEqual(p, newPatient));
+            if (isDuplicate)
+            {
+                MessageBox.Show("Patient already registered.");
+                return;
+            }
+
+            patient = newPatient;
             database.AddPatient(patient);
             DisplayDatabase();
         }
 
+        private bool ArePatientsEqual(Patient p1, Patient p2)
+        {
+            // Check if two patients are equal based on their properties
+            if (p1 == null || p2 == null) return false;
+
+            bool basicEquality = p1.PatientName == p2.PatientName &&
+                                 p1.Age == p2.Age &&
+                                 p1.DateOfStudy == p2.DateOfStudy &&
+                                 p1.Clinic == p2.Clinic &&
+                                 p1.ECGAmplitude == p2.ECGAmplitude &&
+                                 p1.ECGFrequency == p2.ECGFrequency &&
+                                 p1.ECGHarmonics == p2.ECGHarmonics &&
+                                 p1.ECGLowAlarm == p2.ECGLowAlarm &&
+                                 p1.ECGHighAlarm == p2.ECGHighAlarm;
+
+            if (p1 is Stationary stationary1 && p2 is Stationary stationary2)
+            {
+                return basicEquality && stationary1.RoomNumber == stationary2.RoomNumber;
+            }
+
+            return basicEquality && !(p1 is Stationary) && !(p2 is Stationary);
+        }
+
         private void DisplayDatabase()
         {
+            // Display the database of patients in the data grid
             dataGrid.ItemsSource = null;
             dataGrid.ItemsSource = database.GetPatients();
         }
 
         private void ComboBoxParameters_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Update the selected parameter based on the user input
             if (timer == null) return;
 
             selectedParameter = (MonitorConstants.Parameter)comboBoxParameters.SelectedIndex;
@@ -193,6 +229,7 @@ namespace PatientMonitor
         }
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            // Update the UI based on the user input: displays either the database or the chart
             if (radioButtonParameter.IsChecked == true)
             {
                 chartParameters.Visibility = Visibility.Visible;
@@ -223,6 +260,7 @@ namespace PatientMonitor
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            // Update the simulation based on the timer tick
             if (patient == null) return;
             double nextSample = patient.NextSample(timeIndex, selectedParameter);
 
@@ -241,6 +279,7 @@ namespace PatientMonitor
 
         private void StartSimulationButton_Click(object sender, RoutedEventArgs e)
         {
+            // Start the simulation based on the user input
             if (patient == null)
             {
                 MessageBox.Show("Please create a patient before starting the simulation.");
@@ -259,12 +298,14 @@ namespace PatientMonitor
 
         private void StopSimulationButton_Click(object sender, RoutedEventArgs e)
         {
+            // Stop the simulation based on the user input
             timer.Stop();
             stopSimulationButton.IsEnabled = false;
         }
 
         private void DisplayTime()
         {
+            // Display the time chart in the UI
             if (patient == null) return;
 
             if (dataPoints == null)
@@ -285,6 +326,7 @@ namespace PatientMonitor
 
         private void DisplayFrequency()
         {
+            // Display the FFT analysis
             if (patient == null) return;
 
             double[] lastSamples = patient.GetLastNSamples(512);
@@ -302,6 +344,7 @@ namespace PatientMonitor
         
         private void UpdateUIForSelectedParameter()
         {
+            // Update the UI based on the selected parameter
             if (patient == null) return;
 
             switch (selectedParameter)
@@ -334,6 +377,7 @@ namespace PatientMonitor
 
         private void ComboBoxHarmonics_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            // Update the harmonics based on the user input
             if (patient == null) return;
 
             if (comboBoxHarmonics.SelectedIndex != -1)
@@ -344,11 +388,13 @@ namespace PatientMonitor
 
         private void textBoxAge_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
+            // Validate the user input as an Integer for the age text box
             e.Handled = !int.TryParse(e.Text, out _);
         }
 
         private void SliderAmplitude_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            // Update the amplitude based on the user input
             if (patient == null) return;
 
             switch (selectedParameter)
@@ -362,6 +408,7 @@ namespace PatientMonitor
 
         private void textBoxFrequency_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Update the frequency based on the user input
             if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
             if (double.TryParse(textBoxFrequency.Text, out double frequency))
@@ -387,6 +434,7 @@ namespace PatientMonitor
 
         private void textBoxLowAlarm_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Update the low alarm based on the user input
             if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
             if (double.TryParse(textBoxLowAlarm.Text, out double lowAlarm))
@@ -405,6 +453,7 @@ namespace PatientMonitor
 
         private void textBoxHighAlarm_TextChanged(object sender, TextChangedEventArgs e)
         {
+            // Update the high alarm based on the user input
             if ((bool)radioButtonDatabase.IsChecked || patient == null) return;
 
             if (double.TryParse(textBoxHighAlarm.Text, out double highAlarm))
@@ -422,6 +471,7 @@ namespace PatientMonitor
         }
         private void UpdateAlarmLabels()
         {
+            // Update the alarm labels based on the user input
             if (patient == null)
             {
                 labelLowAlarm.Content = string.Empty;
@@ -470,15 +520,24 @@ namespace PatientMonitor
 
         private void fftButton_Click(object sender, RoutedEventArgs e)
         {
-            if (patient == null) return;
-
-            double[] lastSamples = patient.GetLastNSamples(512);
-            if (lastSamples.Length < 512)
+            // Perform FFT analysis based on the user input
+            if (patient == null)
             {
-                MessageBox.Show("Not enough samples collected for FFT calculation.");
+                MessageBox.Show("Please create a patient before performing FFT analysis.");
                 return;
             }
 
+            double[] lastSamples = patient.GetLastNSamples(512);
+
+            // If there are fewer than 512 samples, pad with zeros
+            if (lastSamples.Length < 512)
+            {
+                double[] paddedSamples = new double[512];
+                Array.Copy(lastSamples, paddedSamples, lastSamples.Length);
+                lastSamples = paddedSamples;
+            }
+
+            // Perform FFT
             double[] fftOutput = spektrum.FFT(lastSamples, lastSamples.Length);
 
             dataPoints1.Clear();
@@ -493,6 +552,7 @@ namespace PatientMonitor
 
         private void LoadImagesButton_Click(object sender, RoutedEventArgs e)
         {
+            // Load images based on the user input
             string imageFile;
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image files (*.bmp;*.jpg;*.jpeg;*.png)|*.bmp;*.jpg;*.jpeg;*.png|All files (*.*)|*.*";
@@ -585,7 +645,6 @@ namespace PatientMonitor
 
         void clearDataGrid()
         {
-            // dataGrid.Items.Clear();
             dataGrid.ItemsSource = null;
             index = 0;
         }
@@ -596,7 +655,6 @@ namespace PatientMonitor
 
             MonitorConstants.compareAfter selectedSort = (MonitorConstants.compareAfter)comboBoxSort.SelectedItem;
 
-            // Inicializa el PatientComparer
             PatientComparer pc = new PatientComparer { CA = selectedSort };
 
             database.GetPatients().Sort(pc);
@@ -604,5 +662,9 @@ namespace PatientMonitor
             DisplayDatabase();
         }
 
+        private void quitButton_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
     }
 }

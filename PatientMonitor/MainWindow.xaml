@@ -8,6 +8,7 @@
         mc:Ignorable="d"
         Title="Patient Monitor" Height="660" Width="1140">
 
+    <!-- Grid layout with three columns and two rows -->
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400"/>
@@ -21,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <Grid x:Name="OverlayGrid" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="1" Margin="10,10,10,0">
-            <!-- Chart -->
+            <!-- Real-time parameter chart (hidden by default) -->
             <toolkit:Chart x:Name="chartParameters" Title="Real-time Parameter" VerticalAlignment="Top" 
                    Width="Auto" Height="310" Visibility="Collapsed">
                 <toolkit:LineSeries x:Name="lineSeries" Title=""
@@ -41,7 +42,7 @@
                 </toolkit:LineSeries>
             </toolkit:Chart>
 
-            <!-- DataGrid -->
+            <!-- DataGrid (Table) to display patient data -->
             <DataGrid x:Name="dataGrid" AutoGenerateColumns="False" HorizontalAlignment="Center" VerticalAlignment="Top" Width="780" Height="310" Visibility="Visible">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding PatientName}" />
@@ -51,9 +52,21 @@
                     <DataGridTextColumn Header="Room" Binding="{Binding Room}" />
                     <DataGridTextColumn Header="Date" Binding="{Binding DateOfStudy}" />
                 </DataGrid.Columns>
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <!-- Highlights selected row in blue -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="LightBlue"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Resources>
             </DataGrid>
         </Grid>
 
+        <!-- Frequency analysis chart -->
         <toolkit:Chart x:Name="FrequencyChart" Title="Frequency Analysis"
                VerticalAlignment="Top"
                Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="1"
@@ -75,11 +88,13 @@
             </toolkit:LineSeries>
         </toolkit:Chart>
 
+        <!-- Button to perform FFT analysis -->
         <Button x:Name="fftButton" Content="FFT" Grid.Column="0" Grid.Row="1" Margin="327,78,37,167" FontSize="15" Height="30" Click="fftButton_Click"/>
 
         <GroupBox Header="MR Images" Grid.Column="2" Grid.Row="0" FontSize="15" Margin="0,0,0,20">
+            <!-- Controls for navigating and loading MR images -->
             <StackPanel Orientation="Vertical"  Grid.Column="2" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="276" Width="288">
-                <Label Content="MaxImages" HorizontalAlignment="Right" FontSize="10"/>
+                <Label Content="(After updating, click Load Image again) MaxImages" HorizontalAlignment="Right" FontSize="10"/>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="buttonBack" Content="Prev" Width="50" Margin="5" IsEnabled="False" Click="buttonBack_Click"/>
                     <Button x:Name="loadImagesButton" Content="Load Image" Width="97" Click="LoadImagesButton_Click" Margin="5" IsEnabled="False"/>
@@ -91,6 +106,7 @@
         </GroupBox>
 
         <GroupBox Header="Parameters" Grid.Column="1" Grid.Row="2" FontSize="14" Margin="0,0,10,0">
+            <!-- Controls for adjusting simulation parameters -->
             <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1">
                 <Label Content="Amplitude (mV)" Margin="53,0,0,0"/>
                 <Slider x:Name="sliderAmplitude" Minimum="0" Maximum="10" Width="264" ValueChanged="SliderAmplitude_ValueChanged" />
@@ -178,8 +194,9 @@
                             HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Button x:Name="loadDBButton" Content=" Load DB " IsEnabled="True" Height="25" Margin="13.5,0,13.5,0" Click="loadDBButton_Click"/>
-                        <Button x:Name="saveDBButton" Content=" Save DB " IsEnabled="False" Height="25" Click="saveDBButton_Click"/>
+                        <Button x:Name="loadDBButton" Content=" Load DB " IsEnabled="True" Height="25" Margin="13,0,13,0" Click="loadDBButton_Click"/>
+                        <Button x:Name="saveDBButton" Content=" Save DB " IsEnabled="False" Height="25" Margin="13,0,13, 0" Click="saveDBButton_Click"/>
+                        <Button x:Name="quitButton" Content=" Quit Application " Height="25" Click="quitButton_Click" Background="Red" Foreground="White"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
