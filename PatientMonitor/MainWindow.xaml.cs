@@ -185,6 +185,8 @@ namespace PatientMonitor
             patient = newPatient;
             database.AddPatient(patient);
             DisplayDatabase();
+
+            startSimulationButton.IsEnabled = true;
         }
 
         private bool ArePatientsEqual(Patient p1, Patient p2)
